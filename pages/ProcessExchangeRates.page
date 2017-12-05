@@ -1,0 +1,35 @@
+<apex:page standardController="Exchange_Rate__c" extensions="ProcessExchangeRatesController" recordSetVar="rates" action="{!updateExchangeRateStatus}">
+    <apex:form >
+       <apex:pageBlock title="Process Exchange Rates">
+           <apex:pageMessages id="messages" />
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!processExchangeRates}" value="Confirm and Process" rendered="{!isProcessButtonRendered}"/>
+                <apex:commandButton action="{!returnToListView}" value="Cancel" rendered="{!isProcessButtonRendered}"/>
+                <apex:commandButton action="{!returnToListView}" value="Return to Exchange Rates" rendered="{!isReturnButtonRendered}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockTable value="{!selected}" var="rate">
+                <apex:column value="{!rate.Currency__c}"/>
+                <apex:column value="{!rate.Exchange_Rate__c}"/>
+                <apex:column value="{!rate.Start_Date__c}"/> 
+                <apex:column value="{!rate.End_Date__c}"/> 
+                <apex:column value="{!rate.Status__c}"/> 
+            </apex:pageBlockTable> 
+           	<br/><br/>
+			
+           	<apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+            <apex:actionStatus id="actStatusId" >
+                <apex:facet name="start" >
+                  <img src="/img/loading.gif" />                    
+                </apex:facet>
+            </apex:actionStatus>
+           	<apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+                <apex:column value="{!job.Id}"/>
+                <apex:column value="{!job.Status}"/>
+                <apex:column value="{!job.ExtendedStatus}"/>
+                <apex:column value="{!job.JobItemsProcessed}"/> 
+                <apex:column value="{!job.TotalJobItems}"/> 
+                <apex:column value="{!job.NumberOfErrors}"/> 
+            </apex:pageBlockTable>           
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

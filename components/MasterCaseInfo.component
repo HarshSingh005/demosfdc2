@@ -1,0 +1,28 @@
+<apex:component allowDML="true">
+    <apex:attribute name="thisCon" description="The Visualforce page Controller" type="CaseControllerExt" required="true" />
+    <apex:attribute name="relatedCasesSection" description="The related cases page block section that will be reRendered" type="String" required="true" />
+    
+    <apex:actionRegion >
+	    <apex:pageBlock id="masterCaseSection">
+		    <!--  <apex:pageMessages /> -->
+		    <apex:pageMessage summary="{!thisCon.pageMessage}" severity="{!thisCon.pageMessageSeverity}" strength="2" rendered="{!thisCon.pageMessage != null}"/>
+	        <apex:pageBlockSection title="Master Case Info" >
+	            <apex:repeat value="{!$ObjectType.Case.FieldSets.Master_Case}" var="fieldSetVar">
+	                <apex:inputField value="{!thisCon.masterCase.caseRecord[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}" rendered="{!fieldSetVar.Type != 'textarea'}"/>
+	                <apex:inputField value="{!thisCon.masterCase.caseRecord[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}" rendered="{!fieldSetVar.Type == 'textarea'}" style="width:400px; height:250px"/>
+	            </apex:repeat>
+	        </apex:pageBlockSection>
+	        <apex:pageBlockButtons location="bottom">
+	            <apex:actionStatus id="savingCaseStatus">
+	                <apex:facet name="stop">
+	                    <apex:commandButton value="Save Master Case" action="{!thisCon.saveMasterCase}" status="savingCaseStatus" rerender="masterCaseSection, routedCaseSection, {!relatedCasesSection}"/>
+	                </apex:facet>
+	                <apex:facet name="start">
+	                    <apex:commandButton value="Saving..." disabled="true" status="savingCaseStatus"/>
+	                </apex:facet>
+	            </apex:actionStatus>
+	            <apex:commandButton value="Return" action="{!thisCon.cancel}" immediate="true"/>    
+	        </apex:pageBlockButtons>
+	    </apex:pageBlock>
+    </apex:actionRegion>
+</apex:component>

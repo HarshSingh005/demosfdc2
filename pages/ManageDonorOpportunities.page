@@ -1,0 +1,461 @@
+<apex:page standardController="Contact" extensions="ManageDonorOpportunitiesController" showHeader="true" sidebar="false">
+    <apex:form id="form">
+        <apex:actionfunction id="afUpdate" name="afUpdate" action="{!updateRecords}"
+                             oncomplete="lockScreen(false, '');" rerender="pbsErrorMsg, opPageBlockTable,opPageBlockTable2, theTabPanel" >
+            <apex:param id="tab4Amount" name="tab4Amount" value="" />
+            <apex:param id="tab4Campaign" name="tab4Campaign" value="" />
+            <apex:param id="tab4PmntMethod" name="tab4PmntMethod" value="" />
+            
+            <apex:param id="tab5GivingSchedule" name="tab5GivingSchedule" value="" />
+            <apex:param id="tab5Campaign" name="tab5Campaign" value="" />
+            <apex:param id="tab5Participant" name="tab5Participant" value="" />
+            <apex:param id="tab5PmntMethod" name="tab5PmntMethod" value="" />
+        </apex:actionfunction>
+        
+        <apex:actionfunction id="afSetTabName" name="afSetTabName" action="{!selectTab}" immediate="true"
+                             rerender="pbsErrorMsg, pbMain,opPageBlockTable,opPageBlockTable2" oncomplete="setTabName('', 'Finish');">
+            <apex:param name="selectedTab" assignto="{!selectedTab}" value="{!selectedTab}" />
+        </apex:actionfunction>
+        
+        <apex:actionfunction id="afRefreshRecords" name="afRefreshRecords" action="{!fetchOpportunities}" immediate="true"
+                             rerender="opPageBlockTable,opPageBlockTable2" oncomplete="lockScreen(false, '');">
+            <apex:param name="orderByField" assignto="{!orderByField}" value="{!orderByField}" />
+            <apex:param name="sortingOrder" assignto="{!sortingOrder}" value="{!sortingOrder}" />
+        </apex:actionfunction>
+     <!--        //Code updated for I-251516 begin-->
+      <apex:actionfunction id="changeproducttype" name="changeproducttype" action="{!showproductSubtype}" immediate="true"
+                             rerender="mdoTab4_ProductSubType" >
+                         <apex:param name="productType" assignto="{!productType}" value="{!productType}" />
+        </apex:actionfunction>
+           
+     <!--        //Code updated for I-251516 end-->
+    
+        <c:WaitingComponent />
+        <apex:pageBlock id="pbMain" title="Opportunities Edit" mode="Edit">
+            <apex:pageBlockButtons >
+                <apex:commandbutton value="{!saveButtonName}" onclick="return validateData();" disabled="{!gotError || ((selectedTab == 'Tab1' || selectedTab == 'Tab2' || selectedTab == 'Tab3') && noRecordFound) || (selectedTab=='Tab6' && noRecordFoundSchedulePmnt)}" />
+                <apex:commandButton value="Cancel" action="{!cancel}"/>
+                <apex:commandButton value="Refresh Records" onclick="return refreshRecords('Refreshing..', '', '');" />
+                <!-- <apex:commandButton value="Print Value" action="{!printValue}" reRender="pbsErrorMsg"/> -->
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection id="pbsErrorMsg" columns="1">
+                <div class="pbError">
+                    {!errorMessage} <br/>
+                </div>
+                <apex:pageMessages id="pgMsg"/>
+            </apex:pageBlockSection>
+
+            <apex:tabpanel switchtype="client" id="theTabPanel" value="{!selectedTab}">
+                <!-- Create Sponsorship -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab5}" name="Tab5" id="Tab5" ontabenter="setTabName('Tab5', 'Start');">
+                    <apex:pageblocksection columns="3" rendered="{!selectedTab=='Tab5'}">
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Giving Schedule" />
+                            <apex:inputfield id="mdoTab5_GivingSchedule" value="{!oppty.rC_Giving__Reporting_Schedule__c}" required="true"/>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Account Name" />
+                            <apex:inputfield id="mdoTab5_Account" value="{!oppty.AccountId}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Primary Campaign Source" />
+                            <apex:inputfield id="mdoTab5_Campaign" value="{!oppty.Campaign_Sponsorship__c}" required="true"/> 
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="First Payment Date" />
+                            <apex:inputfield id="mdoTab5_FirstPaymentDate" value="{!oppty.rC_Giving__First_Payment_Date__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Hard Credit Contact" />
+                            <apex:outputlink id="mdoTab5_HCC" value="/{!contactID}">{!contactName}</apex:outputlink>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Primary Contact" />
+                            <apex:inputfield id="mdoTab5_PrimaryContact" value="{!oppty.rC_Giving__Primary_Contact__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Giving Amount" />
+                            <apex:inputfield id="mdoTab5_GivingAmount" value="{!oppty.rC_Giving__Annual_Giving_Amount__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Participant" />
+                            <apex:inputfield id="mdoTab5_Participant" value="{!oppty.Participant__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Payment Method" />
+                            <apex:inputfield id="mdoTab5_PaymentMethod" value="{!oppty.rC_Giving__Payment_Method_Selected__c}" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+
+                <!-- Create DFs -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab1}" name="Tab1" id="Tab1" ontabenter="setTabName('Tab1', 'Start');">
+                    <apex:pageblocksection columns="3" rendered="{!selectedTab=='Tab1'}">
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="DF Campaign" />
+                            <apex:selectlist id="mdoTab1_DFType" value="{!DF_Type}" size="1" required="true">
+                                <apex:selectoptions value="{!DF_Types}" />
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="DF Amount" />
+                            <apex:inputfield id="mdoTab1_GivingAmount" value="{!oppty.rC_Giving__Giving_Amount__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Close Date" />
+                            <apex:inputfield id="mdoTab1_CloseDate" value="{!oppty.Cancelled_Date__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Giving Frequency" />
+                            <apex:inputfield id="mdoTab1_GivingFreq" value="{!oppty.rC_Giving__Giving_Frequency__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Account Name" />
+                            <apex:inputfield id="mdoTab1_Account" value="{!oppty.AccountId}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Selected Payment Method" />
+                            <apex:inputfield id="mdoTab1_PaymentMethod" value="{!oppty.rC_Giving__Payment_Method_Selected__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+
+                <!-- Create Contribution -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab4}" name="Tab4" id="Tab4" ontabenter="setTabName('Tab4', 'Start');">
+                    <apex:pageblocksection columns="3" rendered="{!selectedTab=='Tab4'}">
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Product Type" for="mdoTab4_ProductType" />
+                            <!--        //Code updated for I-251516 begin-->
+                            <apex:selectlist id="mdoTab4_ProductType" value="{!productType}" size="1"  onchange="changeproducttype(this.value)" >
+                             <!--        //Code updated for I-251516 end-->  
+                                <apex:selectoptions value="{!productTypes}"/>
+                                <!--<apex:actionsupport event="onchange" action="{!showproductSubtype}" rerender="mdoTab4_ProductSubType" />-->
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>                        
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%" >
+                            <apex:outputlabel value="Product Sub Type" for="mdoTab4_ProductSubType" />
+                            <apex:selectlist value="{!productSubType}" size="1"  id="mdoTab4_ProductSubType">
+                                <apex:selectoptions value="{!productSubTypeList}" />
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Giving Amount" />
+                            <apex:inputfield id="mdoTab4_GivingAmount" value="{!oppty.rC_Giving__Annual_Giving_Amount__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Account Name" />
+                            <apex:inputfield id="mdoTab4_Account" value="{!oppty.AccountId}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Primary Campaign Source" />
+                            <apex:inputfield id="mdoTab4_Campaign" value="{!oppty.Campaign_Recurring_OneTime__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Close Date" />
+                            <apex:inputfield id="mdoTab4_CloseDate" value="{!oppty.Cancelled_Date__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Payment Method" />
+                            <apex:inputfield id="mdoTab4_PaymentMethod" value="{!oppty.rC_Giving__Payment_Method_Selected__c}" required="true" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="" />
+                            <apex:outputlabel value="" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="" />
+                            <apex:outputlabel value="" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+
+                <!-- Payment Schedules -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab2}" name="Tab2" id="Tab2" ontabenter="setTabName('Tab2', 'Start');">
+                    <apex:pageblocksection columns="3" rendered="{!selectedTab=='Tab2'}">
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Giving Frequency" />
+                            <apex:inputfield id="mdoTab2_GivingFreq" value="{!oppty.rC_Giving__Giving_Frequency__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Close Date" />
+                            <apex:inputfield id="mdoTab2_CloseDate" value="{!oppty.Cancelled_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Monthly Standard Pay Increase" />
+                            <apex:inputfield id="mdoTab2_GivingAmount" value="{!oppty.rC_Giving__Giving_Amount__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Account Name" />
+                            <apex:inputfield id="mdoTab2_Account" value="{!oppty.AccountId}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Selected Payment Method" />
+                            <apex:inputfield id="mdoTab2_PaymentMethod" value="{!oppty.rC_Giving__Payment_Method_Selected__c}" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+
+                <!-- Schedule Payments for Processing -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab6}" name="Tab6" id="Tab6" ontabenter="setTabName('Tab6', 'Start');">
+                    <apex:pageblocksection columns="2" rendered="{!selectedTab=='Tab6'}">
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Amount" />
+                            <apex:inputfield id="mdoTab6_GivingAmount" value="{!oppty.Amount}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Close Date" />
+                            <apex:inputfield id="mdoTab6_CloseDate" value="{!oppty.Cancelled_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Account Name" />
+                            <apex:inputfield id="mdoTab5_Account" value="{!oppty.AccountId}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Payment Method" />
+                            <apex:inputfield id="mdoTab6_PaymentMethod" value="{!oppty.Selected_Payment_Method_EFT_CC__c}" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+
+                <!-- Other Updates -->
+                <apex:tab label="{!$Label.ManageDonorOpportunities_Tab3}" name="Tab3" id="Tab3" ontabenter="setTabName('Tab3', 'Start');">
+                    <apex:pageblocksection columns="3" rendered="{!selectedTab=='Tab3'}">
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Do Not Sub" />
+                            <apex:inputfield id="mdoTab3_DoNotSub" value="{!oppty.CFI_Do_Not_Substitute__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Do Not Sub Reason" />
+                            <apex:inputfield id="mdoTab3_DoNotSubReason" value="{!oppty.Do_Not_Sub_Reason__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Cancel Reason" />
+                            <apex:selectlist id="mdoTab3_SCRD" value="{!scrd}" size="1">
+                                <apex:selectoptions value="{!SponsorshipChangeReasonDetail}" />
+                            </apex:selectlist>
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Sponsorship Forgive" />
+                            <apex:inputfield id="mdoTab3_Forgive" value="{!oppty.Paid_Through_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:10%" labelstyle="width:20%">
+                            <apex:outputlabel value="Suspend Date From" />
+                            <apex:inputfield id="mdoTab3_StartDate" value="{!oppty.rC_Giving__Suspended_Start_Date__c}" />
+                        </apex:pageblocksectionitem>
+                        <apex:pageblocksectionitem datastyle="width:20%" labelstyle="width:20%">
+                            <apex:outputlabel value="Suspend Date To" />
+                            <apex:inputfield id="mdoTab3_EndDate" value="{!oppty.rC_Giving__Suspended_End_Date__c}" />
+                        </apex:pageblocksectionitem>
+                    </apex:pageblocksection>
+                </apex:tab>
+            </apex:tabpanel>
+
+            <apex:outputpanel id="opPageBlockTable" rendered="{!NOT(displayTab6)}">
+                <apex:pageblocktable value="{!lstOppWrap}" var="ow" id="pageBlockTableOppWrapper">
+                    <apex:inputhidden value="{!ow.opp['Id']}" />
+                    <apex:column rendered="{!(selectedTab!='Tab4' && selectedTab!='Tab5')}">
+                        <apex:facet name="header">
+                            <apex:inputcheckbox id="parentCheckBox" onclick="checkAll(this); " />
+                        </apex:facet>
+                        <apex:inputcheckbox id="childCheckBox" value="{!ow.isUpdate}" onclick="toggleCheckAll();" />
+                    </apex:column>
+                    <apex:repeat var="oppField" value="{!OpportunityFields}">
+                    <!--[I-223714] Ashu Gupta(Appirio) Added condition for DFC_Release_Month_Master__c -->
+                        <apex:column value="{!ow.opp[oppField]}" rendered="{!oppField!='Id' && oppField!='Name' && ((oppField!='DFC_Release_Month_Master__c' && (selectedTab=='Tab4' || selectedTab=='Tab5')) || selectedTab=='Tab1' || selectedTab=='Tab2' || selectedTab=='Tab3')}">
+                            <apex:facet name="header">
+                                <apex:commandlink value="{!$ObjectType.Opportunity.fields[oppField].Label}{!IF(orderByField==oppField && orderByField!='' && oppField=='CloseDate',IF(sortingOrder='ASC','▲','▼'),'')}"
+                                                  onclick="return refreshRecords('Sorting..', '{!oppField}', '{!IF(orderByField==oppField && sortingOrder=='ASC', 'DESC', 'ASC')}');">
+                                </apex:commandlink>
+                            </apex:facet>
+                        </apex:column>
+                        <apex:column headervalue="{!ow.opp[oppField]}" rendered="{!oppField=='Name'}">
+                            <apex:facet name="header">
+                                <apex:commandlink value="{!$ObjectType.Opportunity.fields['Name'].Label}{!IF(orderByField==oppField,IF(sortingOrder='ASC','▲','▼'),'')}"
+                                                  onclick="return refreshRecords('Sorting..', 'Name', '{!IF(orderByField==oppField && sortingOrder=='ASC', 'DESC', 'ASC')}');">
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:outputlink id="OptyLink" value="/{!ow.opp['id']}" target="_blank">
+                                {!ow.opp['Name']}
+                            </apex:outputlink>
+                        </apex:column>
+                    </apex:repeat>
+                </apex:pageblocktable>
+                <div style="margin-left:10px; margin-top:5px;">Total Records : <b>{!lstOppWrap.size}</b></div>
+            </apex:outputpanel>
+            
+            <apex:outputpanel id="opPageBlockTable2" rendered="{!displayTab6}">
+                <apex:pageblocktable value="{!lstOppWrapSchedulePmnt}" var="ow" id="pageBlockTableOppWrapper2">
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:inputcheckbox id="parentCheckBox" onclick="checkAll(this); " />
+                        </apex:facet>
+                        <apex:inputcheckbox id="childCheckBox" value="{!ow.isUpdate}" onclick="toggleCheckAll();" />
+                        <apex:inputhidden value="{!ow.opp['Id']}" />
+                    </apex:column>
+                    <apex:repeat var="oppField" value="{!OpportunityFieldsSchedulePmnt}">
+                        <apex:column value="{!ow.opp[oppField]}" rendered="{!oppField!='Id' && oppField!='Name'}">
+                            <apex:facet name="header">
+                                <apex:commandlink value="{!IF($ObjectType.Opportunity.fields[oppField].Label=='Giving Amount', 'Amount', $ObjectType.Opportunity.fields[oppField].Label)}{!IF(orderByField==oppField && orderByField!='' && oppField=='CloseDate',IF(sortingOrder='ASC','▲','▼'),'')}"
+                                                  onclick="return refreshRecords('Sorting..', '{!oppField}', '{!IF(orderByField==oppField && sortingOrder=='ASC', 'DESC', 'ASC')}');">
+                                </apex:commandlink>
+                            </apex:facet>
+                        </apex:column>
+                        <apex:column headervalue="{!ow.opp[oppField]}" rendered="{!oppField=='Name'}">
+                            <apex:facet name="header">
+                                <apex:commandlink value="Opportunity Name{!IF(orderByField==oppField,IF(sortingOrder='ASC','▲','▼'),'')}"
+                                                  onclick="return refreshRecords('Sorting..', 'Name', '{!IF(orderByField==oppField && sortingOrder=='ASC', 'DESC', 'ASC')}');">
+                                </apex:commandlink>
+                            </apex:facet>
+                            <apex:outputlink id="OptyLink" value="/{!ow.opp['id']}" target="_blank">
+                                {!ow.opp['Name']}
+                            </apex:outputlink>
+                        </apex:column>
+                    </apex:repeat>
+                </apex:pageblocktable>
+                <div style="margin-left:10px; margin-top:5px;">Total Records : <b>{!lstOppWrapSchedulePmnt.size}</b></div>
+            </apex:outputpanel>
+        </apex:pageBlock>
+    </apex:form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+        $j = jQuery.noConflict();
+        function checkAll(cntrl) {
+            allCheckBoxes = $j('input[id$=childCheckBox]');
+            allCheckBoxes.prop("checked", $j(cntrl).prop("checked"));
+        }
+        function toggleCheckAll() {
+            var isNotChecked = false;
+            $j('input[id$=childCheckBox]').each(function(){
+                if(!isNotChecked) {
+                    if(!$j(this).prop("checked"))
+                        isNotChecked = true;
+                }
+            });
+            if(isNotChecked)
+                $j('input[id$=parentCheckBox]').prop("checked", false);
+            else
+                $j('input[id$=parentCheckBox]').prop("checked", true);
+        }
+
+        var tabName = "{!selectedTab}";
+        function setTabName(val, status) {
+            if(status=='Start') {
+                tabName = val;
+                //$j('div[id$=pbMain]').fadeOut('slow');
+                lockScreen(true, 'Changing Tab..');
+                afSetTabName(val);
+            } else {
+                lockScreen(false, '');
+                //$j('div[id$=pbMain]').fadeIn('slow');
+            }
+        }
+        function refreshRecords(statusVal, sortField, sortOrder) {
+            //alert(statusVal + ' : ' + sortField + ' : ' + sortOrder);
+            lockScreen(true, statusVal);
+            afRefreshRecords(sortField, sortOrder);
+            return false;
+        }
+        function validateData() {
+            var DFType = $j('select[id$=mdoTab1_DFType] option:selected').text();
+            var givingFreq = $j('select[id$=mdoTab1_GivingFreq]').val();
+            //alert(tabName);
+            if(tabName == 'Tab1' && !(givingFreq=='Annually' || givingFreq=='One Payment') && (DFType=='30 - Birthday' || DFType=='31 - Christmas' || DFType=='32 - Easter' || DFType=='41 - New Years' || DFType=='42 - Valentines' || DFType=='74 - Thanksgiving')) {
+                alert("You must choose Giving Frequency as 'One Payment' or 'Annually' for '" + DFType + "' DF Type.");
+                $j('select[id$=mdoTab1_GivingFreq]').focus();
+                return false;
+            }
+            else if(tabName == 'Tab1' && DFType == '') {
+                alert("Please select any 'DF Campaign' to continue..");
+                $j('select[id$=mdoTab1_DFType]').focus();
+                return false;
+            }
+            else if(tabName == 'Tab1' && $j('input[id$=mdoTab1_GivingAmount]').val() == '') {
+                alert("Please enter 'DF Amount' to continue..");
+                $j('input[id$=mdoTab1_GivingAmount]').focus();
+                return false;
+            }
+            else if(tabName == 'Tab1' && $j('input[id$=mdoTab1_CloseDate]').val()=='') {
+                alert("Please enter 'Close Date' to proceed further.");
+                $j('input[id$=mdoTab1_CloseDate]').focus();
+                return false;
+            }
+            else if(tabName == 'Tab1' && $j('input[id$=mdoTab1_PaymentMethod]').val()=='') {
+                alert("Please select 'Selected Payment Method' to proceed further.");
+                $j('input[id$=mdoTab1_PaymentMethod]').focus();
+                return false;
+            }
+            if(tabName=="Tab2" && $j('select[id$=mdoTab2_GivingFreq]').val()!='' && $j('input[id$=mdoTab2_GivingAmount]').val()!='') {
+                alert("Please select one at a time 'Giving Frequency' or 'Monthly Standard Pay Increase'.");
+                $j('select[id$=mdoTab2_GivingFreq]').focus();
+                return false;
+            }
+            if(tabName=="Tab3" && $j('select[id$=mdoTab3_SCRD]').val() != '') {
+                if(!confirm("Are you sure to cancel the selected Opportunities?"))
+                    return false;
+            }
+            if(tabName=='Tab3' && $j('input[id$=mdoTab3_StartDate]').val()!='' && $j('input[id$=mdoTab3_EndDate]').val()!=''){
+                var sDate = $j('input[id$=mdoTab3_StartDate]').val();
+                var eDate = $j('input[id$=mdoTab3_EndDate]').val();
+                var startDate = new Date(sDate.split('/')[2], sDate.split('/')[0]-1, sDate.split('/')[1]);
+                var endDate = new Date(eDate.split('/')[2], eDate.split('/')[0]-1, eDate.split('/')[1]);
+                var diff = new Date(endDate - startDate);
+                var days = diff/1000/60/60/24;      // get days
+                if(days>90) {
+                    alert("Difference of 'Suspend Date From' and 'Suspend Date To' cannot be greater than 90 days.");
+                    $j('input[id$=mdoTab3_StartDate]').focus();
+                    return false;
+                }
+            }
+            else if(tabName == 'Tab4' && $j('input[id$=mdoTab4_CloseDate]').val()=='') {
+                alert("Please enter 'Close Date' to proceed further.");
+                $j('input[id$=mdoTab4_CloseDate]').focus();
+                return false;
+            }
+            else if(tabName == 'Tab4' && $j('input[id$=mdoTab4_PaymentMethod]').val()=='') {
+                alert("Please select 'Selected Payment Method' to proceed further.");
+                $j('input[id$=mdoTab4_PaymentMethod]').focus();
+                return false;
+            }
+            if(tabName=='Tab1')
+                lockScreen(true, 'Creating DFs..');
+            else if(tabName=='Tab4')
+                lockScreen(true, 'Creating Contribution..');
+            else if(tabName=='Tab5') {
+                if($j('select[id$=mdoTab5_GivingSchedule]').val()=='') {
+                    alert("Please select 'Giving Schedule' to proceed further.");
+                    $j('select[id$=mdoTab5_GivingSchedule]').focus();
+                    return false;
+                }
+                if($j('input[id$=mdoTab5_Campaign]').val().trim()=='') {
+                    alert("Please select 'Primary Campaign Source' to proceed further.");
+                    $j('input[id$=mdoTab5_Campaign]').focus();
+                    return false;
+                }
+                if($j('input[id$=mdoTab5_FirstPaymentDate]').val().trim()=='') {
+                    alert("Please enter 'First Payment Date' to proceed further.");
+                    $j('input[id$=mdoTab5_FirstPaymentDate]').focus();
+                    return false;
+                }
+                if($j('input[id$=mdoTab5_GivingAmount]').val().trim()=='') {
+                    alert("Please enter 'Giving Amount' to proceed further.");
+                    $j('input[id$=mdoTab5_GivingAmount]').focus();
+                    return false;
+                }
+                lockScreen(true, 'Creating Sponsorship..');
+            }
+            else
+                lockScreen(true, 'Updating..');
+
+            afUpdate($j('input[id$=mdoTab4_GivingAmount]').val(),$j('select[id$=mdoTab4_Campaign] option:selected').text(),
+                     $j('select[id$=mdoTab4_PaymentMethod] option:selected').text(),
+                     $j('select[id$=mdoTab5_GivingSchedule] option:selected').text(),
+                     $j('select[id$=mdoTab5_Campaign] option:selected').text(),
+                     $j('input[id$=mdoTab5_Participant]').val(),
+                     $j('select[id$=mdoTab5_PaymentMethod] option:selected').text());
+            return false;
+        }     
+    </script>
+    <apex:stylesheet value="/sCSS/25.0/sprites/1342034628000/Theme3/default/gc/versioning.css" />
+    <apex:stylesheet value="/sCSS/25.0/sprites/1342034628000/Theme3/default/gc/extended.css" />
+</apex:page>

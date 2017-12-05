@@ -1,0 +1,8 @@
+<apex:page standardcontroller="Contact" extensions="showParticipantPhotoController" showheader="false" sidebar="false">
+    <apex:form id="form" style="background:white;text-align:right;">
+        <!--<apex:pageblock id="pbMain">-->
+            <apex:image id="participantPhoto" value="data&colon;MIME/png;base64,{!conPart.Photo_Data__c}" width="200" height="260" rendered="{!isPhotoAvailable}" />
+            <apex:image id="participantPhoto_NA" url="{!imageURL}" width="200" height="260" rendered="{!!isPhotoAvailable}" />
+        <!--</apex:pageblock>-->
+    </apex:form>
+</apex:page>

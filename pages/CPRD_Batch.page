@@ -1,0 +1,68 @@
+<apex:page controller="CPRD_Batch_Controller" readOnly="true">
+    <apex:composition template="CPRD_Template">
+        <apex:define name="contents">
+
+            <table class="mainTitle" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Home)}"><i class="fa-left fa fa-home"></i>Home</apex:outputLink>
+                    </td>
+                    <td class="text-right">
+                        <label>Batch </label>
+                        <apex:outputField value="{!batch.Batch_Number__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Origin Code </label>
+                        <apex:outputField value="{!batch.FOC__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Date </label>
+                        <apex:outputField value="{!batch.rC_Connect__Distribution_End_Date__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Total Amount </label>
+                        <apex:outputField value="{!batch.rC_Giving__Total_Value__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Amount Undistributed </label>
+                        <apex:outputPanel styleClass="{!IF(batch.rC_Giving__Remaining_Value__c>0,'text-danger','text-success')}"><apex:outputField value="{!batch.rC_Giving__Remaining_Value__c}"/></apex:outputPanel>
+                    </td>
+                </tr>
+            </table>
+
+            <hr/>
+
+            <apex:pageBlock mode="MainDetail">
+                <apex:pageBlockTable value="{!batchUploads}" var="batchUpload" id="table-batchupload" styleClass="dataTable">
+                    <apex:column headerValue="Donor Name" styleClass="unknownable">
+                        <apex:outputLink value="/{!batchUpload.rC_Connect__HardCreditContact__r.Id}">{!batchUpload.rC_Connect__HardCreditContact__r.Name}</apex:outputLink>
+                    </apex:column>
+                    <apex:column headerValue="Donor Number" styleClass="unknownable">
+                        <apex:outputLink value="/{!batchUpload.rC_Connect__HardCreditContact__r.Id}">{!batchUpload.rC_Connect__HardCreditContact__r.Donor_Number__c}</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Sequence Number<i class="fa-right fa fa-search"></i>
+                            <div class="column-filter hidden"><input type="search" placeholder="Sequence #"/></div>
+                        </apex:facet>
+                        <apex:outputField value="{!batchUpload.rC_Connect__Batch_Upload_Sequence_Number__c}"/>
+                    </apex:column>
+                    <apex:column headerValue="Amount" styleClass="text-right">
+                        <apex:outputField value="{!batchUpload.rC_Connect__Giving_Giving_Amount__c}"/>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">
+                            Distribution Status<i class="fa-right fa fa-filter"></i>
+                            <div class="column-filter hidden" data-filter='{!batchUploadStatusFilter}'></div>
+                        </apex:facet>
+                        <i class="fa-left fa {!IF(batchUpload.rC_Connect__Batch_Upload_Status__c=='New','fa-circle-o',IF(batchUpload.rC_Connect__Batch_Upload_Status__c=='To Process','fa-clock-o',IF(batchUpload.rC_Connect__Batch_Upload_Status__c=='Processed','text-success fa-check-circle-o',IF(batchUpload.rC_Connect__Batch_Upload_Status__c=='Flagged','text-danger fa-exclamation-circle',IF(batchUpload.rC_Connect__Batch_Upload_Status__c=='Committed','text-success fa-check-circle','text-danger fa-times-circle')))))}"><apex:outputField value="{!batchUpload.rC_Connect__Batch_Upload_Status__c}"/></i>
+                    </apex:column>
+                    <apex:column headerClass="no-sort">
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Distribute,null,[id=batchUpload.Id])}"><i class="fa fa-chevron-circle-right"></i></apex:outputLink>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

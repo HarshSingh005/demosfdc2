@@ -1,0 +1,82 @@
+<apex:page standardController="contact" extensions="MultipleDonorsUpdateController" showHeader="true" sidebar="true" title="Update Multiple Donors">
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" />
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" />
+    
+    <apex:form id="bulkUpdateForm">
+        <apex:actionFunction name="callBatch" action="{!callBatch}" rerender="mainPageBlock"/>
+
+        <script>
+            function checkDoNotSubReason(){
+                if($("select[id$='doNotSub']" ).val().length != 0 && !$("select[id$='doNotSubReason']" ).val()){
+                    alert("Please select Do Not Sub Reason.");
+                    return false;
+                }
+                if(!confirm('Are you sure?')) {
+                    console.log("inside confirm");
+                    return false;
+                }
+                console.log("return true");
+                callBatch();
+                
+            }
+            
+        </script>
+        <apex:pageBlock id="mainPageBlock">
+            <apex:pageMessages id="messages"/>
+            
+            <apex:pageBlockButtons rendered="{!allowToRunBatch}">
+                <apex:commandButton value="Update"  onclick="return checkDoNotSubReason();" reRender="mainPageBlock"/>
+            </apex:pageBlockButtons>
+        
+            <apex:pageBlock >
+                <apex:pageBlockSection columns="2" collapsible="false" title="Search Criteria">
+                    <apex:inputField value="{!childConObj.Donor_Alliance__c}" label="Donor Alliance" required="true"/>
+                    <apex:inputField value="{!childConObj.National_Office__c}" label="Child NO" required="true"/>
+                    <apex:inputField value="{!childConObj.Local_Partner__c}" label="Child LP" required="false"/>
+                    <apex:inputField value="{!childConObj.Community__c}" label="Child Community" required="false"/>
+                    <apex:inputCheckbox value="{!preferenceoverride}" id="preferenceoverride" label="Preference Override?" />
+                </apex:pageBlockSection>
+            </apex:pageBlock>  
+            
+            <apex:pageBlock title="Change Criteria" >
+                <apex:pageBlockSection columns="2" collapsible="true" title="Contact Fields">
+                    <apex:inputField value="{!childConObj.Standard_Pay_Opt_Out__c}" label="Standard pay opt out setting" required="false"/>
+                    <apex:inputField value="{!childConObj.MailingStreet}" label="Mailing Street" required="false"/>
+                    <apex:inputField value="{!childConObj.MailingCity}" label="Mailing City" required="false"/>
+                    <apex:inputField value="{!childConObj.MailingState}" label="Mailing State" required="false"/>
+                    <apex:inputField value="{!childConObj.MailingPostalCode }" label="Mailing Postal Code" required="false"/>
+                    <apex:inputField value="{!childConObj.MailingCountry}" label="Mailing Country" required="false"/>
+                </apex:pageBlockSection>
+                
+                
+                <apex:pageBlockSection columns="2" collapsible="true" title="Opportunity Fields">
+                    <apex:inputField value="{!sponsorOppty.All_Child_Correspondence__c}" label="Do Not Receive Field Correspondence" required="false"/>
+                    <apex:inputField value="{!sponsorOppty.CFI_Do_Not_Substitute__c}" id="doNotSub" label=" Do Not Sub" required="false"/>
+                    <apex:inputField value="{!sponsorOppty.Do_Not_Sub_Reason__c}" id="doNotSubReason" label=" Do Not Sub Reason" required="false"/>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="2" collapsible="true" title="Preference Fields">
+                    <apex:inputField value="{!prfrncObj.National_Office__c}" label="Preferred NO" required="false"/>
+                    <apex:inputField value="{!prfrncObj.Local_Partner__c}" label="Preferred LP" required="false"/>
+                    <apex:inputField value="{!prfrncObj.Community__c}" label="Preferred Community" required="false"/>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+            
+            <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages" rendered="{!!allowToRunBatch}"/>
+            <apex:actionStatus id="actStatusId" >
+                <apex:facet name="start" >
+                  <img src="/img/loading.gif" />                    
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!!allowToRunBatch}">
+                <apex:column value="{!job.Id}"/>
+                <apex:column value="{!job.Status}"/>
+                <apex:column value="{!job.ExtendedStatus}"/>
+                <apex:column value="{!job.JobItemsProcessed}"/> 
+                <apex:column value="{!job.TotalJobItems}"/> 
+                <apex:column value="{!job.NumberOfErrors}"/> 
+            </apex:pageBlockTable> 
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

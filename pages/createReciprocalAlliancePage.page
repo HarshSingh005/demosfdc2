@@ -1,0 +1,42 @@
+<apex:page tabstyle="Reciprocal_Alliance_File_Queue__c" controller="createReciprocalAllianceController">
+    <apex:form id="form">
+        <apex:actionfunction id="afSaveRecords" name="afSaveRecords" action="{!save}"
+                             rerender="pbMain" oncomplete="lockScreen(false, '');">
+        </apex:actionfunction>
+        <c:WaitingComponent />
+        <apex:pageblock id="pbMain" mode="Edit">
+            <apex:pageblockbuttons >
+                <apex:commandbutton value="Save" onclick="return validateData();" />
+                <apex:commandbutton value="Cancel" action="{!cancel}" />
+            </apex:pageblockbuttons>
+            <apex:pagemessages />
+            <apex:pageblocksection id="pbsContent" columns="2">
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="File Type" />
+                    <apex:inputfield id="rpfqFileType" value="{!rpfq.File_Type__c}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="Alliance" />
+                    <apex:inputfield id="rpfqAlliance" value="{!rpfq.Alliance__c}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="Start Date" />
+                    <apex:inputfield id="rpfqStartDate" value="{!rpfq.Start_Date__c}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="End Date" />
+                    <apex:inputfield id="rpfqEndDate" value="{!rpfq.End_Date__c}" />
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+    </apex:form>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+        $j = jQuery.noConflict();
+        function validateData() {
+            lockScreen(true, 'Saving Record..');
+            afSaveRecords();
+            return false;
+        }
+    </script>
+</apex:page>

@@ -1,0 +1,41 @@
+<apex:component controller="WebTransactionFollowUpController" access="global">
+<apex:attribute name="myId1" type="String" description="The ID" assignTo="{!myId}" />
+<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+<p>Dear {!webTransaction.Contact__r.Name} :</p>
+<table align="right" style="border:1px solid white;margin:2px">
+   <tbody>
+      <tr bgcolor="#7AB800">
+         <td align="center"><font size ="4"><b>Please Contact Us</b></font></td>
+      </tr>
+      <tr>
+         <td>
+            <table>
+               <tbody>
+                  <tr>
+                     <td><img src="https://www.childfund.org/uploadedImages/NewCF/Utility/EnterpriseEmails/Alert-Icon-.png" width="75" alt="Alert Thumbnail"></img></td>
+                     <td><font size ="4"><b>1-800-776-6767</b></font><br/><font size ="2">Mon-Thu 9a-7p ET | Fri 9:30a-2p ET</font><br/><a href="mailto:questions@childfund.org" target="_top">questions@childfund.org</a> </td>
+                  </tr>
+               </tbody>
+            </table>
+         </td>
+      </tr>
+      <tr bgcolor="#7AB800">
+         <td align="center"><font size ="2"><b>Your Contact ID: {!webTransaction.Contact__c} </b></font></td>
+      </tr>
+   </tbody>
+</table>
+<p>Thank you for your support with a contribution  to ChildFund International. We deeply appreciate your generosity and willingness to help a child in need. </p>
+<p>Unfortunately, we need additional information to process your donation request. Please contact our Sponsor Care Team to complete your donation. </p>
+<p>If calling, the ChildFund representative will ask for your ChildFund Contact ID, which is: {!webTransaction.Contact__c}. </p>
+<p>We apologize for the inconvenience, and genuinely appreciate your willingness to help children in need. </p>
+<table>
+   <tbody>
+      <tr>
+         <td><img src="https://www.childfund.org/uploadedImages/NewCF/Utility/EnterpriseEmails/mreynolds_thumbnail.jpg" width="100" alt="Marcy Thumbnail"></img></td>
+         <td>Sincerely,<br/><img src="https://www.childfund.org/uploadedImages/NewCF/Utility/EnterpriseEmails/mreynolds_signature.png" width="150" alt="MReynolds Signature" /><br/>Marcy Reynolds<br/>Manager, Sponsor Care</td>
+      </tr>
+   </tbody>
+</table>
+<p align="right"><font size="1"/>#5</p></body></html>
+</apex:component>

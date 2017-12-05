@@ -1,0 +1,27 @@
+<apex:page standardController="rC_Bios__Address__c" extensions="AddressEditControllerExtension">
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                    <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                    <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    
+    <apex:form >
+        <apex:pageBlock title="Address Edit">
+            <apex:pageMessages />
+            <apex:pageBlockButtons >
+            	<apex:commandButton value="Save" action="{!Save}"/>
+                <apex:commandButton value="Save & New" action="{!SaveAndNew}"/>
+                <apex:commandButton value="Cancel" action="{!Cancel}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection collapsible="false" title="Information">    	
+                <c:AddressValidationComponent AddressToValidate="{!address}" Required="false" Controllers="{!AddressControllers}" WaitStatus="waitStatus"/>
+                 
+            </apex:pageBlockSection>
+        </apex:pageBlock>   
+    </apex:form>
+</apex:page>

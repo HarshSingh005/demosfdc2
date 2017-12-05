@@ -1,0 +1,46 @@
+<apex:page controller="CPRD_Home_Controller" readOnly="true">
+    <apex:composition template="CPRD_Template">
+        <apex:define name="contents">
+
+            <apex:sectionHeader title="ChildFund Payment Receipts & Disbursement"/>
+
+            <apex:pageMessages />
+
+            <apex:pageBlock mode="MainDetail">
+                <div class="filter-search">
+                    <input type="search" placeholder="Search"/>
+                    <i class="fa fa-search"></i>
+                </div>
+            </apex:pageBlock>
+
+            <hr/>
+
+            <apex:pageBlock title="Recently Uploaded - Undistributed" mode="MainDetail">
+                <apex:pageBlockTable value="{!batches}" var="batch" id="table-batch" styleClass="dataTable">
+                    <apex:column headerValue="{!$ObjectType.rC_Giving__Batch__c.Fields.Batch_Number__c.Label}" value="{!batch.Batch_Number__c}" styleClass="text-bold"/>
+                    <apex:column headerValue="Origin Code" value="{!batch.FOC__c}"/>
+                    <apex:column headerValue="Date" value="{!batch.rC_Connect__Distribution_End_Date__c}"/>
+                    <apex:column headerValue="Total Amount" value="{!batch.rC_Giving__Total_Value__c}" styleClass="text-bold text-right"/>
+                    <apex:column headerValue="Amount Undistributed" value="{!batch.rC_Giving__Remaining_Value__c}" styleClass="text-bold text-right"/>
+                    <apex:column headerValue="Distributed" value="{!batch.rC_Giving__Current_Number__c} of {!batch.rC_Giving__Total_Number__c}"/>
+                    <apex:column headerClass="no-sort">
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Batch,null,[id=batch.Id])}"><i class="fa fa-chevron-circle-right"></i></apex:outputLink>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+
+            <apex:pageBlock title="Recently Viewed" mode="MainDetail">
+                <apex:pageBlockTable value="{!batchUploads}" var="batchUpload" id="table-batchupload" styleClass="dataTable">
+                    <apex:column headerValue="Donor Number" value="{!batchUpload.rC_Connect__HardCreditContact__r.Donor_Number__c}" styleClass="unknownable"/>
+                    <apex:column headerValue="Donor Name" value="{!batchUpload.rC_Connect__HardCreditContact__r.Name}" styleClass="unknownable"/>
+                    <apex:column headerValue="{!$ObjectType.rC_Giving__Batch__c.Fields.Batch_Number__c.Label}" value="{!batchUpload.rC_Connect__Batch_Upload_Batch__r.Batch_Number__c}"/>
+                    <apex:column headerValue="Close Date" value="{!batchUpload.rC_Connect__Giving_Close_Date__c}"/>
+                    <apex:column headerClass="no-sort">
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Distribute,null,[id=batchUpload.Id])}"><i class="fa fa-chevron-circle-right"></i></apex:outputLink>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlock>
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

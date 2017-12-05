@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>36.0</apiVersion>
+    <availableInTouch>false</availableInTouch>
+    <confirmationTokenRequired>false</confirmationTokenRequired>
+    <label>WebExceptionEditPage</label>
+    <packageVersions>
+        <majorNumber>2</majorNumber>
+        <minorNumber>44</minorNumber>
+        <namespace>rC_Bios</namespace>
+    </packageVersions>
+    <packageVersions>
+        <majorNumber>2</majorNumber>
+        <minorNumber>69</minorNumber>
+        <namespace>rC_Connect</namespace>
+    </packageVersions>
+</ApexPage>

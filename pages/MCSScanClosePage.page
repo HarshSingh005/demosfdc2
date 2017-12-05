@@ -1,0 +1,23 @@
+<apex:page controller="MCSScanClose" >
+    <apex:form >
+        <apex:pageMessages />
+        <apex:pageBlock title="MCS Closure Scanner : User {!$User.FirstName}">
+            MCS Code: <apex:inputText value="{!MCS_id}"/>
+            <apex:commandButton action="{!scan}" value="scan"/>
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="Info">
+        <apex:pageBlockSection >
+            Letter Type: <apex:outputText value="{!MCS.MCS_Letter_Type__c}"/>
+            Child Name: <apex:outputText value="{!MCS.Participant__r.Name}"/>
+            Child #: <apex:outputText value="{!MCS.Child_Number1__c}"/>
+            Case #: <apex:outputText value="{!MCS.Case_Nbr__c}"/>
+            Child NO: <apex:outputText value="{!MCS.NO_Lookup__r.Name}"/>
+            Donor Name: <apex:outputText value="{!MCS.Donor__r.Name}"/>
+            Comments: <apex:outputText value="{!MCS.Comments__c}"/>
+            Date Closed: <apex:outputText value="{!MCS.Date_Closed__c}"/>            
+        </apex:pageBlockSection>
+        </apex:pageBlock>
+        
+    </apex:form>
+</apex:page>

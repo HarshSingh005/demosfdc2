@@ -1,0 +1,73 @@
+<apex:component controller="CustomSearchController">
+	<apex:attribute name="thisCon" description="The Visualforce page Controller" type="CustomSearchInterface" required="true" assignTo="{!customSearchController}"/>
+	<apex:attribute name="sObjName" description="The API name of the SObject to search on" type="String" required="true" assignTo="{!sObjectName}"/>
+	<apex:attribute name="searchResultSection" description="The Section that will be reRendered with the Search Results" type="String" required="true" />
+	<apex:attribute name="pbSection" description="The page block section that will be reRendered with the Error Messages" type="String" required="true" />
+	
+	<apex:includeScript value="{!$Resource.customlookup}"/>
+		
+	<apex:pageBlockSection columns="1" title="Search" id="CustomSearchSection">
+		<apex:dataTable value="{!searchFilters}" var="filter" width="100%">
+			<apex:column headerValue="Field">
+		        <apex:selectList value="{!filter.selectedField}" multiselect="false" size="1">
+					<apex:selectOptions value="{!filter.objFields}"/>
+					<apex:actionSupport event="onchange" action="{!setFieldTypeAndValues}" rerender="CustomSearchSection" status="fieldTypeStatus" />
+				</apex:selectList>
+				<apex:actionStatus id="fieldTypeStatus">
+				    <apex:facet name="stop" /><apex:facet name="start"><img src="/img/loading.gif" alt="Loading graphic" /></apex:facet>
+				</apex:actionStatus>
+			</apex:column>
+			
+			<apex:column headerValue="Operator">
+				<apex:selectList value="{!filter.selectedOperator}" multiselect="false" size="1">
+					<apex:selectOptions value="{!filter.operators}"/>
+				</apex:selectList>
+			</apex:column>
+			<apex:column headerValue="Value">
+				<apex:inputText value="{!filter.value}" rendered="{!filter.freeTextField}" />
+				<apex:inputText value="{!filter.Value}" rendered="{!LEN(filter.errorMsg)==0 && (filter.fieldType == 'CURRENCY' || filter.fieldType == 'DOUBLE' || filter.fieldType == 'PERCENT')}" />		
+				<apex:outputPanel rendered="{!LEN(filter.errorMsg)!=0 && (filter.fieldType == 'CURRENCY' || filter.fieldType == 'DOUBLE' || filter.fieldType == 'PERCENT')}">
+					<apex:inputText value="{!filter.Value}" styleClass="error" />
+					<div class="errorMsg"><strong>Error:</strong>&nbsp;{!filter.errorMsg}</div>	
+				</apex:outputPanel>
+				<apex:outputPanel rendered="{!filter.fieldType == 'REFERENCE'}">
+					<apex:inputText value="{!filter.lookupValue}" id="lookupFld" />					
+					<script>document.getElementById('{!$Component.lookupFld}').disabled = true; </script>
+					<apex:inputHidden value="{!filter.lookupId}" id="lookupIdFld" />
+					<a href="#" onclick="openLookupPopup('{!$Component.lookupFld}', '{!$Component.lookupIdFld}', '{!filter.lookupType}'); return false">
+						<img src="/s.gif" alt="Lookup (New Window)"  class="lookupIcon"/>
+					</a>
+					<a href="#" onclick="clearLookupValues('{!$Component.lookupFld}', '{!$Component.lookupIdFld}'); return false">Clear</a>
+				</apex:outputPanel>
+				<apex:selectList value="{!filter.selectedPicklistValue}" multiselect="false" size="1" 
+													rendered="{!filter.fieldType == 'PICKLIST' || filter.fieldType == 'BOOLEAN'}"> 
+					<apex:selectOptions value="{!filter.picklistValues}"/>
+				</apex:selectList>
+				<apex:selectList value="{!filter.selectedMultiPicklistValues}" multiselect="true" size="3" rendered="{!filter.fieldType == 'MULTIPICKLIST'}"> 
+					<apex:selectOptions value="{!filter.picklistValues}"/>
+				</apex:selectList> 
+				<apex:inputField value="{!filter.customSearch.Date__c}" rendered="{!filter.fieldType == 'DATE'}" />
+			</apex:column>
+			<apex:column headerValue="Logical Operator"> 
+				<apex:selectList value="{!filter.selectedLogicalOp}" multiselect="false" size="1">
+					<apex:selectOptions value="{!filter.logicalOps}"/>
+				</apex:selectList>
+			</apex:column>
+		</apex:dataTable>
+		<apex:outputPanel >
+			<apex:commandLink value="Add Row" action="{!addRow}" reRender="CustomSearchSection"/> 
+			<apex:outputText value="&nbsp; &nbsp;" escape="false" />
+			<apex:commandLink value="Remove Row" action="{!removeRow}" reRender="CustomSearchSection"/>
+		</apex:outputPanel>
+		
+		<apex:actionStatus id="searchStatus">
+		    <apex:facet name="stop">
+		        <apex:commandButton value="Search" action="{!doSearch}" status="searchStatus" reRender="{!searchResultSection}, {!pbSection}, CustomSearchSection" />
+		    </apex:facet>
+		    <apex:facet name="start">
+		        <apex:commandButton value="Searching..." disabled="true" status="searchStatus"/>
+		    </apex:facet>
+		</apex:actionStatus>
+		
+	</apex:pageBlockSection>
+</apex:component>

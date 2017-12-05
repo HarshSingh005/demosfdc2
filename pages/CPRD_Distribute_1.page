@@ -1,0 +1,700 @@
+<apex:page controller="CPRD_Distribute_Controller">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+        $j = jQuery.noConflict();
+        function funcAutoSponsor() {
+            if($j('input[id$=txtDonorName]').val().trim().length == 0) {
+                alert('You must specify Donor first!');
+                return false;
+            }
+            if($j('input[id$=dfAmount]').val().trim().length == 0 || $j('input[id$=dfAmount]').val() == 0) {
+                alert('You must enter an Amount');
+                return false;
+            }
+            $j('[id$=pgMsg]').css('display','none');
+            lockScreen(true, 'Auto Sponsoring..');
+            afAutoSponsor();
+            return false;
+        }
+        function funcAutoDF() {
+            //alert('Start');
+            if($j('input[id$=txtDonorName]').val().trim().length == 0) {
+                alert('You must specify Donor first!');
+                return false;
+            }
+            if($j('input[id$=dfCampaign]').val().trim().length == 0 || $j('input[id$=dfAmount]').val().trim().length == 0 || $j('input[id$=dfAmount]').val() == 0) {
+                alert('You must first enter an Amount and Campaign');
+                return false;
+            }
+            $j('[id$=pgMsg]').css('display','none');
+            lockScreen(true, 'Auto DFing..');
+            afAutoDF();
+            //alert('End');
+            return false;
+        }
+
+        function saveAll() {
+            //alert('Start');
+            $j('[id$=pgMsg]').css('display','none');
+            lockScreen(true, 'Saving Records..');
+            afSaveAll();
+            //alert('End');
+            return false;
+        }
+    </script>
+    <apex:composition template="CPRD_Template">
+        <apex:define name="contents">
+            <c:WaitingComponent />
+            <table class="mainTitle" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="text-normal">
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Home)}"><i class="lead fa-left fa fa-home"></i><span class="small">Home</span></apex:outputLink>
+                    </td>
+                    <td class="text-right">
+                        <label>Batch </label>
+                        <apex:outputLink value="{!URLFOR($Page.CPRD_Batch,null,[id=batch.Id])}">{!batch.Batch_Number__c}</apex:outputLink>
+                    </td>
+                    <td class="text-right">
+                        <label>Origin Code </label>
+                        <apex:outputField value="{!batch.FOC__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Date </label>
+                        <apex:outputField value="{!batch.rC_Connect__Distribution_End_Date__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Total Amount </label>
+                        <apex:outputField value="{!batch.rC_Giving__Total_Value__c}"/>
+                    </td>
+                    <td class="text-right">
+                        <label>Amount Undistributed </label>
+                        <apex:outputPanel styleClass="{!IF(batch.rC_Giving__Remaining_Value__c>0,'text-danger','text-success')}"><apex:outputField value="{!batch.rC_Giving__Remaining_Value__c}"/></apex:outputPanel>
+                    </td>
+                </tr>
+            </table>
+
+            <hr/>
+
+            <apex:form >
+                <apex:actionRegion >
+                    <div id="donorId"><apex:inputHidden value="{!batchUpload.rC_Connect__HardCreditContact__c}"/></div>
+                    <apex:actionFunction action="{!changeDonor}" name="changeDonor" oncomplete="initTables();" rerender="histories" status="historiesStatus"/>
+                </apex:actionRegion>
+                <table class="mainTitle" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td>
+                            <label>Donor Number </label>
+                            <div id="donorNumber" style="display: inline-block;"><input type="text" value="{!batchUpload.rC_Connect__HardCreditContact__r.Donor_Number__c}" onfocus="this.blur();" style="margin-right: -4px;"/></div>
+                            <a href="javascript:lookupDonor('donorId', 'donorName', 'donorNumber');" onfocus="this.blur()" title="Lookup Donor"><img src="/s.gif" alt="Lookip Donor" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookip Donor"/></a>
+                            <apex:outputLink value="/{!batchUpload.rC_Connect__HardCreditContact__c}" rendered="{!batchUpload.rC_Connect__HardCreditContact__c!=null}"><i class="fa-right fa fa-chevron-circle-right"></i></apex:outputLink>
+                        </td>
+                        <td>
+                            <label>Donor Name </label>
+                            <div id="donorName" style="display: inline-block;"><input id="txtDonorName" type="text" value="{!batchUpload.rC_Connect__HardCreditContact__r.Name}" onfocus="this.blur();" style="margin-right: -4px;"/></div>
+                            <a href="javascript:lookupDonor('donorId', 'donorName', 'donorNumber');" onfocus="this.blur()" title="Lookup Donor"><img src="/s.gif" alt="Lookip Donor" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookip Donor"/></a>
+                            <apex:outputLink value="/{!batchUpload.rC_Connect__HardCreditContact__c}" rendered="{!batchUpload.rC_Connect__HardCreditContact__c!=null}"><i class="fa-right fa fa-chevron-circle-right"></i></apex:outputLink>
+                        </td>
+                        <td>
+                            <apex:outputLabel value="Close Date "></apex:outputLabel>
+                            <apex:outputField value="{!batchUpload.rC_Connect__Giving_Close_Date__c}" id="batchUploadCloseDate"/>
+                        </td>
+                        <td>
+                            <apex:outputLabel value="Amount "></apex:outputLabel>
+                            <apex:outputField value="{!batchUpload.rC_Connect__Giving_Giving_Amount__c}" id="batchUploadAmount"/>
+                        </td>
+                    </tr>
+                </table>
+
+                <hr/>
+                <apex:pagemessages id="pgMsg" />
+                <apex:pageBlock title="Distribute Funds" mode="MainDetail">
+                    <apex:pageBlockButtons location="top" styleClass="text-right" style="padding-right:0;">
+                        <apex:outputPanel >
+                            <b><apex:outputLabel value="Campaign" />&nbsp;</b>
+                            <apex:inputField id="dfCampaign" value="{!Opp.CampaignId}" />
+                        </apex:outputPanel>
+                        &nbsp;&nbsp;&nbsp;
+                        <apex:outputPanel >
+                            <b><apex:outputLabel value="Amount" />&nbsp;</b>
+                            <apex:inputField id="dfAmount" value="{!Opp.Amount}" />
+                        </apex:outputPanel>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <apex:commandButton value="Auto Sponsor" onclick="return funcAutoSponsor();"/>
+                        <apex:actionfunction id="afAutoSponsor" name="afAutoSponsor" action="{!autoSponsor}"
+                                             oncomplete="lockScreen(false, '');" rerender="paymentPanel, pgMsg" />
+                        <apex:commandButton value="Auto DF" style="margin-right:1px;" onclick="return funcAutoDF();"/>
+                        <apex:actionfunction id="afAutoDF" name="afAutoDF" action="{!autoDF}"
+                                             oncomplete="lockScreen(false, '');" rerender="paymentPanel, pgMsg" />
+                        <apex:actionfunction id="afSaveAll" name="afSaveAll" action="{!saveAll}"
+                                             oncomplete="lockScreen(false, '');location.reload();" rerender="MainDetail, pgMsg" />
+                        <apex:actionFunction id="afDeleteRecord" name="afDeleteRecord" action="{!deleteRecord}"
+                            oncomplete="lockScreen(false, '');" reRender="paymentPanel">
+                            <apex:param name="recordNoToDelete" assignTo="{!recordNoToDelete}" value="{!recordNoToDelete}"/>
+                        </apex:actionFunction>
+                    </apex:pageBlockButtons>
+                    <apex:outputPanel id="paymentPanel">
+                        <!--<apex:actionRegion >-->
+                            <apex:variable var="rowcount" value="{!0}"/>
+                            <apex:variable var="paymentCount" value="{!0}" />
+                            <apex:actionfunction name="afUpdateFieldsOnOppChange" action="{!updateFieldsOnOppChange}" rerender="paymentPanel" status="paymentsStatus" oncomplete="lockScreen(false, '');">
+                                <apex:param name="paymentIndex" value="{!recordIndex}" assignto="{!recordIndex}" />
+                            </apex:actionfunction>
+                            <apex:actionFunction name="afUpdateOnCampaignSelect" action="{!updateFieldsOnCampaignSelect}" reRender="paymentPanel" status="paymentsStatus">
+                                <apex:param name="paymentIndex" value="{recordIndex}" assignto="{!recordIndex}" />
+                            </apex:actionFunction>
+                            <apex:actionFunction name="afUpdateOnGAUSelect" action="{!updateFieldsOnGAUSelect}" reRender="paymentPanel, pgMsg" status="paymentsStatus">
+                                <apex:param name="paymentIndex" value="{!recordIndex}" assignto="{!recordIndex}" />
+                            </apex:actionFunction>
+
+                            <apex:pageblocktable value="{!payments}" var="payment" styleclass="fundTable" id="payments">
+                                <!-- Columns when batch upload distribution record's status is Open                 START -->
+                                <apex:column headervalue="Action" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <apex:inputhidden id="budStatus" value="{!payment.bud.Status__c}" />
+                                    <apex:outputlink style="color:Red; text-decoration:None;" onclick="lockScreen(true, 'Deleting Record..'); afDeleteRecord({!paymentCount}); return false;">✘</apex:outputlink>
+                                </apex:column>
+                                <apex:column headervalue="Amount to Apply" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <!--<apex:inputField value="{!payment.opp.rC_Giving__Giving_Amount__c}"/>-->
+                                    <apex:inputfield value="{!payment.bud.Giving_Amount__c}" />
+                                </apex:column>
+                                <apex:column headervalue="Opportunity" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:inputfield value="{!payment.bud.Opportunity__c}" onfocus="this.blur();" onchange="updateFieldsOnOppChange(this.value, {!rowcount}); return false;" />
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Campaign" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div style="display: flex;">
+                                        <!--<div id="campaignId{!rowcount}"><apex:inputHidden value="{!payment.bud.CampaignId}"/></div>-->
+                                        <div id="campaignId{!rowcount}"><apex:inputhidden value="{!payment.bud.Campaign__c}" /></div>
+                                        <!--<div id="campaignName{!rowcount}" style="display: inline-block;"><apex:inputText value="{!payment.bud.Campaign.Name}" onfocus="this.blur();" style="margin-right: -4px;"/></div>&nbsp;-->
+                                        <div id="campaignName{!rowcount}" style="display: inline-block;"><apex:inputtext id="txtCampaignName" value="{!payment.campaignName}" onfocus="this.blur();" onchange="UpdateFieldsOnCampChange(this.value, {!rowcount});" style="margin-right: -4px;" /></div>&nbsp;
+                                        <a href="javascript:lookupCampaign('campaignId{!rowcount}','campaignName{!rowcount}');" onfocus="this.blur()" title="Lookup Campaign"><img src="/s.gif" alt="Lookip Campaign" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookip Campaign" /></a>
+                                    </div>
+                                </apex:column>
+
+                                <apex:column headervalue="GAU" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <!--<apex:inputField value="{!payment.opp.rC_Giving__GAU__c}" onfocus="this.blur()" onchange="changeGAU(this);afUpdateOnGAUSelect({!paymentCount});"/>-->
+                                    <apex:inputfield value="{!payment.bud.GAU__c}" onfocus="this.blur()" onchange="changeGAU(this); afUpdateOnGAUSelect({!rowcount});" />
+                                    <apex:outputlink styleclass="reason-for-suspense {!IF(payment.gauName == '600','','invisible')}" onclick="editReason(this);return false;"><i class="fa-right fa fa-comment"></i></apex:outputlink>
+                                    <div class="hidden"><b>Suspense Reason</b><p><apex:inputtextarea value="{!payment.bud.Suspense_Reason__c}" style="width: 248px;resize: none;height: 115px;" /></p><p class="text-center"><button class="btn-cancel">Cancel</button><button class="btn-ok">Apply</button></p></div>
+                                </apex:column>
+                                <apex:column headervalue="Product Type" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <apex:inputfield value="{!payment.bud.Product_Type__c}">
+                                        <apex:actionsupport event="onchange" rerender="paymentPanel" status="paymentsStatus" />
+                                    </apex:inputfield>
+                                </apex:column>
+
+                                <apex:column headervalue="Product Sub Type" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:inputfield value="{!payment.bud.Product_Sub_Type__c}" />
+                                        <apex:outputlink styleclass="reason-for-suspense {!IF(payment.bud.Product_Type__c == 'Designated Fund','','invisible')}" onclick="prodSubTypeReason(this);return false;"><i class="fa-right fa fa-comment"></i></apex:outputlink>
+                                        <div class="hidden"><b>DF Message</b><p><apex:inputtextarea value="{!payment.bud.DF_Message__c}" style="width: 248px;resize: none;height: 115px;" /></p><p class="text-center"><button class="btn-cancel">Cancel</button><button class="btn-ok">Apply</button></p></div>
+                                    </div>
+                                </apex:column>
+
+                                <apex:column headervalue="Participant Number" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div style="display: flex;">
+                                        <div id="participantId{!rowcount}"><apex:inputhidden value="{!payment.bud.Participant__c}" /></div>
+                                        <div id="participantNumber{!rowcount}" style="display: inline-block;"><apex:inputtext value="{!payment.ChildNumber}" onfocus="this.blur();" style="margin-right: -4px;" /></div>&nbsp;
+                                        <a href="javascript:lookupParticipant('participantId{!rowcount}', 'participantNumber{!rowcount}', 'participantNON{!rowcount}','participantCN{!rowcount}');" onfocus="this.blur()" title="Lookip Donor"><img src="/s.gif" alt="Lookip Donor" class="lookupIcon" onblur="this.className = 'lookupIcon';" onfocus="this.className = 'lookupIconOn';" onmouseout="this.className = 'lookupIcon';this.className = 'lookupIcon';" onmouseover="this.className = 'lookupIconOn';this.className = 'lookupIconOn';" title="Lookip Donor" /></a>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="National Office" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div id="participantNON{!rowcount}"><apex:inputtext value="{!payment.NationalOfficeNumber}" onfocus="this.blur();" style="margin-right: -4px;" /></div>
+                                </apex:column>
+                                <apex:column headervalue="Community" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <div id="participantCN{!rowcount}"><apex:inputtext value="{!payment.CommunityNumber}" onfocus="this.blur();" style="margin-right: -4px;" /></div>
+                                </apex:column>
+
+                                <apex:column headervalue="Soft Credit" rendered="{!if(payment.bud.Status__c == 'Open' || payment.bud.Id==null, true, false)}">
+                                    <!--<apex:inputField value="{!payment.opp.rC_Sponsorship__Credited__c}" onchange="changeCredit(this,'creditId{!rowcount}','creditName{!rowcount}','creditNumber{!rowcount}');"/>-->
+                                    <apex:inputfield value="{!payment.bud.Credit__c}" onchange="changeCredit(this,'creditId{!rowcount}','creditName{!rowcount}','creditNumber{!rowcount}');" />
+                                    <div id="creditId{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__c}" /></div>
+                                    <div id="creditName{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__r.Name}" /></div>
+                                    <div id="creditNumber{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__r.Donor_Number__c}" /></div>
+                                    <!--<apex:outputLink styleClass="soft-credit {!IF(payment.opp.rC_Sponsorship__Credited__c,'','invisible')}" onclick="editCredit(this);return false;"><i class="fa-right fa fa-eye"></i></apex:outputLink>-->
+                                    <apex:outputlink styleclass="soft-credit {!IF(payment.bud.Credit__c,'','invisible')}" onclick="editCredit(this);return false;"><i class="fa-right fa fa-eye"></i></apex:outputlink>
+                                    <div class="hidden">
+                                        <!--<p>Donor Name: <a href="/{!payment.opp.rC_Sponsorship__Credited__c}">{!payment.softCredit.Name}</a></p>
+                                        <p>Donor Number: <a href="/{!payment.opp.rC_Sponsorship__Credited__c}">{!payment.softCredit.Donor_Number__c}</a></p>-->
+                                        <p>Donor Name: <a href="/{!payment.bud.Credit_Contact__c}">{!payment.bud.Credit_Contact__r.Name}</a></p>
+                                        <p>Donor Number: <a href="/{!payment.bud.Credit_Contact__c}">{!payment.bud.Credit_Contact__r.Donor_Number__c}</a></p>
+                                        <p><apex:outputlink onclick="lookupDonor('creditId{!rowcount}','creditName{!rowcount}','creditNumber{!rowcount}');return false;">Replace Donor?</apex:outputlink></p>
+                                        <p class="text-center"><button>OK</button></p>
+                                    </div>
+                                    <apex:variable var="rowcount" value="{!rowcount + 1}" />
+                                    <apex:variable var="paymentCount" value="{!paymentCount + 1}" />
+                                </apex:column>
+                                <!-- Columns when batch upload distribution record's status is Open                 END -->
+
+                                <!-- Columns when batch upload distribution record's status is not Open (could be Committed)                 START -->
+                                <apex:column headervalue="Action" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <apex:outputlink style="color:black; text-decoration:None;" onclick="alert('Record is locked..'); return false;">✘</apex:outputlink>
+                                </apex:column>
+                                <apex:column headervalue="Amount to Apply" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.Giving_Amount__c}"></apex:outputfield>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Opportunity" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex; text-align:left;">
+                                        <apex:outputfield value="{!payment.bud.Opportunity__c}"></apex:outputfield>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Campaign" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.Campaign__c}"></apex:outputfield>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="GAU" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.GAU__c}"></apex:outputfield>
+                                        <apex:outputlink styleclass="reason-for-suspense {!IF(payment.gauName == '600','','invisible')}" onclick="return false;"><i class="fa-right fa fa-comment"></i></apex:outputlink>
+                                        <div class="hidden">
+                                            <b>Suspense Reason</b><p><apex:inputtextarea value="{!payment.bud.Suspense_Reason__c}" style="width: 248px;resize: none;height: 115px;" /></p><p class="text-center"><button class="btn-cancel">Cancel</button><button class="btn-ok">Apply</button></p>
+                                        </div>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Product Type" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.Product_Type__c}"></apex:outputfield>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Product Sub Type" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.Product_Sub_Type__c}"></apex:outputfield>
+                                        <apex:outputlink styleclass="reason-for-suspense {!IF(payment.bud.Product_Type__c == 'Designated Fund','','invisible')}" onclick="prodSubTypeReason(this);return false;"><i class="fa-right fa fa-comment"></i></apex:outputlink>
+                                        <div class="hidden"><b>DF Message</b><p><apex:inputtextarea value="{!payment.bud.DF_Message__c}" style="width: 248px;resize: none;height: 115px;" /></p><p class="text-center"><button class="btn-cancel">Cancel</button><button class="btn-ok">Apply</button></p></div>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Participant Number" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputfield value="{!payment.bud.Participant__c}"></apex:outputfield>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="National Office" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputlabel value="{!payment.NationalOfficeNumber}"></apex:outputlabel>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Community" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <div style="display: flex;">
+                                        <apex:outputlabel value="{!payment.CommunityNumber}"></apex:outputlabel>
+                                    </div>
+                                </apex:column>
+                                <apex:column headervalue="Soft Credit" rendered="{!if(payment.bud.Status__c != 'Open' && payment.bud.Id!=null, true, false)}">
+                                    <apex:outputfield value="{!payment.bud.Credit__c}"></apex:outputfield>
+                                    <div id="creditId{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__c}" /></div>
+                                    <div id="creditName{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__r.Name}" /></div>
+                                    <div id="creditNumber{!rowcount}" style="display: inline-block;"><apex:inputhidden value="{!payment.bud.Credit_Contact__r.Donor_Number__c}" /></div>
+                                    <!--<apex:outputLink styleClass="soft-credit {!IF(payment.opp.rC_Sponsorship__Credited__c,'','invisible')}" onclick="editCredit(this);return false;"><i class="fa-right fa fa-eye"></i></apex:outputLink>-->
+                                    <apex:outputlink styleclass="soft-credit {!IF(payment.bud.Credit__c,'','invisible')}" onclick="return false;"><i class="fa-right fa fa-eye"></i></apex:outputlink>
+                                    <div class="hidden">
+                                        <!--<p>Donor Name: <a href="/{!payment.opp.rC_Sponsorship__Credited__c}">{!payment.softCredit.Name}</a></p>
+                <p>Donor Number: <a href="/{!payment.opp.rC_Sponsorship__Credited__c}">{!payment.softCredit.Donor_Number__c}</a></p>-->
+                                        <p>Donor Name: <a href="/{!payment.bud.Credit_Contact__c}">{!payment.bud.Credit_Contact__r.Name}</a></p>
+                                        <p>Donor Number: <a href="/{!payment.bud.Credit_Contact__c}">{!payment.bud.Credit_Contact__r.Donor_Number__c}</a></p>
+                                        <p><apex:outputlink onclick="lookupDonor('creditId{!rowcount}','creditName{!rowcount}','creditNumber{!rowcount}');return false;">Replace Donor?</apex:outputlink></p>
+                                        <p class="text-center"><button>OK</button></p>
+                                    </div>
+                                    <apex:variable var="rowcount" value="{!rowcount + 1}" />
+                                    <apex:variable var="paymentCount" value="{!paymentCount + 1}" />
+                                </apex:column>
+                                <!-- Columns when batch upload distribution record's status is not Open (could be Committed)                 END -->
+                            </apex:pageblocktable>
+                            <apex:actionfunction action="{!addPayment}" name="addPayment" rerender="paymentPanel" status="paymentsStatus" />
+                            <!--</apex:actionRegion>-->
+                        </apex:outputPanel>
+                    <apex:actionStatus id="paymentsStatus" startStyleClass="table-status" layout="block">
+                        <apex:facet name="start">
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+
+                    <table class="mainTitle" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="text-left">
+                                <a href="" class="disabled" style="margin-right: 15px;"><i class="fa-left fa fa-chevron-circle-left"></i>Previous</a>
+                                Item Seq. <input type="text" value="{!batchUpload.rC_Connect__Batch_Upload_Sequence_Number__c}" id="seq" style="width: 50px;"/>
+                                <a href="" class="disabled" style="margin-left: 15px;">Next<i class="fa-right fa fa-chevron-circle-right"></i></a>
+                                <apex:outputPanel style="margin-left:20px;">
+                                    <apex:commandButton value="Add New Row" style="margin-left:1px;" onclick="lockScreen(true, 'Adding New Row..'); afAddNewRow(); return false;"/>
+                                    <apex:actionFunction id="afAddNewRow" name="afAddNewRow" action="{!addPayment}" 
+                                        oncomplete="lockScreen(false, '');" reRender="paymentPanel" />
+                                </apex:outputPanel>
+                            </td>
+                            <td class="text-right">
+                                <label>Amount Distributed</label>
+                                <apex:outputField value="{!batchUpload.Amount_Distributed__c}"/>
+                            </td>
+                            <td class="text-right">
+                                <label>Amount Remaining to Distribute</label>
+                                <apex:outputField value="{!batchUpload.Amount_Remaining_to_Distribute__c}"/>
+                            </td>
+                            <td class="text-right">
+                                <apex:outputPanel id="messagePanel"> 
+                                    <apex:outputText rendered="{!isVerified}" style="margin-right: 10px; display: inline-block" styleClass="text-success"><i class="fa-left fa fa-check-circle-o" style="font-size: 20px;vertical-align: middle;color:green;"></i><span style="color:green">Verification Successful</span></apex:outputText>
+                                    <apex:outputText rendered="{!!isVerified}" styleClass="text-danger" style="margin-right: 10px; display: inline-block"><i class="fa-left fa fa-times-circle-o" style="font-size: 20px;vertical-align: middle;color:red;"></i><span style="color:red">Verification Unsuccessful</span></apex:outputText>
+                                </apex:outputPanel>
+                                <apex:commandButton value="Save and Verify" style="margin-right:1px;" onclick="return saveAll();"/>
+                                <apex:commandButton value="Apply" onclick="return apply(this);"/>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:pageBlock>
+
+                <hr/>
+
+                <apex:pageBlock title="Payments by Date" mode="MainDetail">
+                    <apex:outputPanel id="histories">
+                        <apex:pageBlockTable value="{!histories}" var="Opportunity" styleClass="dataTable" rendered="{!batchUpload.rC_Connect__HardCreditContact__c!=null}">
+                            <apex:column headerValue="Distribution Date" value="{!Opportunity.Date_of_Distribution__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="Close Date" headerClass="no-sort">
+                                <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                    <apex:param value="{!Opportunity.rC_Giving__Close_Date_Time__c}" />
+                                </apex:outputText>
+                            </apex:column>
+                            <apex:column headerValue="Amount" value="{!Opportunity.Amount}" headerClass="no-sort"/>
+                            <apex:column headerValue="GAU Name" value="{!Opportunity.rC_Giving__GAU__r.Name}" headerClass="no-sort"/>
+                            <apex:column headerValue="GAU Description" value="{!Opportunity.rC_Giving__GAU__r.rC_Giving__Description__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="National Office" value="{!Opportunity.Participant__r.National_Office_Number__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="Child Number" value="{!Opportunity.Participant__r.Child_Number__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="Community" value="{!Opportunity.Participant__r.Community_Number__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="Release Date" value="{!Opportunity.Release_Date__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="DFC Release Date" value="{!Opportunity.DFC_Release_Date__c}" headerClass="no-sort"/>
+                            <apex:column headerValue="DFC Status" headerClass="no-sort">
+                                <!--<apex:outputField value="{!Opportunity.DFC_Status__c}"/>-->
+                            </apex:column>
+                            <apex:column headerClass="no-sort">
+                                <apex:outputLink value="/{!Opportunity.Id}"><i class="fa fa-chevron-circle-right"></i></apex:outputLink>
+                            </apex:column>
+                        </apex:pageBlockTable>
+                    </apex:outputPanel>
+                    <apex:actionStatus id="historiesStatus" startStyleClass="table-status" layout="block">
+                        <apex:facet name="start">
+                            <apex:image value="/img/loading.gif"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:pageBlock>
+
+            </apex:form>
+
+            <script type="text/javascript">
+                function apply(btn) {
+                    var confirm = false;
+                    //alert($(btn).val());
+                    $(btn).qtip({
+                        content: '<p class="text-center"><strong>Are you sure?</strong></p><p class="text-center"><button class="btn-cancel">Continue</button><button class="btn-ok">Cancel</button></p>',
+                        position: {
+                            my: 'center', at: 'center',
+                            target: $(window)
+                        },
+                        show: {
+                            ready: true,
+                            modal: {
+                                on: true,
+                                blur: false
+                            }
+                        },
+                        hide: false,
+                        style: {
+                            classes: 'dialogue qtip-bootstrap qtip-shadow'
+                        },
+                        events: {
+                            render: function(event, api) {
+                                $('button.btn-ok', api.elements.content).click(function(e) {
+                                    confirm = true;
+                                    api.hide(e);
+                                });
+                                $('button.btn-cancel', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                });
+                            },
+                            hide: function(event, api) { api.destroy(); }
+                        }
+                    });
+                    return false;
+                }
+            </script>
+                
+            <script>
+                jQuery(document).ready(function ($) {
+                    var batchUploads ={!batchUploadsJSON};
+                    var seqs = [];
+                    var seq = $("#seq");
+                    var seqValue = seq.val();
+                    $.each(batchUploads, function(i,v){
+                        seqs.push(v.rC_Connect__Batch_Upload_Sequence_Number__c);
+                        if(v.rC_Connect__Batch_Upload_Sequence_Number__c==seqValue){
+                            if(i==0){
+                                seq.next().attr('href', '{!URLFOR($Page.CPRD_Distribute)}?id='+batchUploads[i+1].Id).removeClass('disabled');
+                            }else if(i==batchUploads.length-1){
+                                seq.prev().attr('href', '{!URLFOR($Page.CPRD_Distribute)}?id='+batchUploads[i-1].Id).removeClass('disabled');
+                            }else{
+                                seq.prev().attr('href', '{!URLFOR($Page.CPRD_Distribute)}?id='+batchUploads[i-1].Id).removeClass('disabled');
+                                seq.next().attr('href', '{!URLFOR($Page.CPRD_Distribute)}?id='+batchUploads[i+1].Id).removeClass('disabled');
+                            }
+                        }
+                    });
+                    seq.autocomplete({
+                        source: seqs,
+                        close: function( event, ui ) {
+                            seq.change();
+                        }
+                    });
+                    seq.on('blur change', function () {
+                        var si=$.inArray(this.value,seqs);
+                        if(si!=-1&&seqValue!=this.value){
+                            seqValue = this.value;
+                            location.href='{!URLFOR($Page.CPRD_Distribute)}?id='+batchUploads[si].Id;
+                        }else{
+                            seq.val(seqValue);
+                        }
+                    });
+
+                    $('[id*=batchUploadCloseDate],[id*=batchUploadAmount]').each(function (i,v) {
+                        $(v).parent().prev().val($(v).text());
+                    });
+
+                    $(document).on('change', 'input,select', function (e) {
+                        if ($(e.target).closest('tr').is(":last-child")) {
+                            addPayment();
+                        }
+                    })
+
+                    $('form').on('submit',function() {
+                        var confirm = false;
+                        alert($(this).val());
+                        $(this).qtip({
+
+                            content: '<p class="text-center"><strong>Are you sure you want to apply these funds?</strong></p><p class="text-center"><button class="btn-cancel">Cancel</button><button class="btn-ok">Ok</button></p>',
+                            position: {
+                                my: 'center', at: 'center',
+                                target: $(window)
+                            },
+                            show: {
+                                ready: true,
+                                modal: {
+                                    on: true,
+                                    blur: false
+                                }
+                            },
+                            hide: false,
+                            style: {
+                                classes: 'dialogue qtip-bootstrap qtip-shadow'
+                            },
+                            events: {
+                                render: function(event, api) {
+                                    $('button.btn-cancel', api.elements.content).click(function(e) {
+                                        api.hide(e);
+                                    });
+                                    $('button.btn-ok', api.elements.content).click(function(e) {
+                                        confirm = true;
+                                        api.hide(e);
+                                    });
+                                },
+                                hide: function(event, api) { api.destroy(); }
+                            }
+                        });
+                        return confirm;
+                    })
+                });
+
+                /*alert('start');     //input[id$=txtDonorName]
+                $('[id$=payments] > tbody > tr').each(function (i,v) {
+                    alert(i);
+                    //alert(v);
+                    var status = $(v).find('[id$=budStatus]').val();
+                    alert(status);
+                    if(status == 'Committed')
+                        $(v).disabled = true;
+                });*/
+
+                var lookupDonorWin=null;
+                function lookupDonor(id,name,number){
+                    var url="{!URLFOR($Page.CPRD_LookupDonor)}?idfield=" + id + "&namefield=" + name + "&numberfield=" + number;
+                    lookupDonorWin=window.open(url, 'Popup','height=500,width=600,left=100,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no');
+                    if (window.focus){
+                        lookupDonorWin.focus();
+                    }
+                    return false;
+                }
+                function closelookupDonor(idfield,id,name,number) {
+                    if(idfield=='donorId'){
+                        changeDonor();
+                    }else if(currentCredit!=null&&id!=null){
+                        var a =currentCredit.closest('td').find('.soft-credit');
+                        a.removeClass('invisible');
+                        var div=a.next();
+                        div.find('p').each(function (i, v) {
+                            if(i==0){
+                                $(v).html('Donor Name: <a href="/'+id+'">'+name+'</a>');
+                            }else if(i==1){
+                                $(v).html('Donor Number: <a href="/'+id+'">'+number+'</a>');
+                            }else{
+                                return false;
+                            }
+                        });
+                        currentCredit.prop('checked',true);
+                        currentCredit = null;
+                    }
+                    if (null!=lookupDonorWin) {
+                        lookupDonorWin.close();
+                    }
+                }
+
+                var lookupParticipantWin=null;
+                function lookupParticipant(id,number,non,cn){
+                    var url="{!URLFOR($Page.CPRD_LookupParticipant)}?idfield=" + id + "&numberfield=" + number + "&nonfield=" + non + "&cnfield=" + cn;
+                    lookupParticipantWin=window.open(url, 'Popup','height=500,width=600,left=100,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no');
+                    if (window.focus){
+                        lookupParticipantWin.focus();
+                    }
+                    return false;
+                }
+                function closelookupParticipant() {
+                    if (null!=lookupParticipantWin) {
+                        lookupParticipantWin.close();
+                    }
+                }
+
+                var lookupCampaignWin=null;
+                function lookupCampaign(id, name){
+                    var url="{!URLFOR($Page.CPRD_LookupCampaign)}?idfield=" + id + "&namefield=" + name;
+                    lookupCampaignWin=window.open(url, 'Popup','height=500,width=600,left=100,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no');
+                    if (window.focus){
+                        lookupCampaignWin.focus();
+                    }
+                    return false;
+                }
+                function closelookupCampaign(namefield, name) {
+                    alert(namefield);
+                    alert(name);
+                    if (null!=lookupCampaignWin) {
+                        lookupCampaignWin.close();
+                        //afUpdateOnCampaignSelect();
+                    }
+                }
+                function updateFieldsOnOppChange(oppVal, indexVal) {
+                    //alert(oppVal);
+                    //alert(indexVal);
+                    if(oppVal != '' && oppVal != null) {
+                        afUpdateFieldsOnOppChange(indexVal);
+                        //lockScreen(true, 'Opportunity Change..');
+                    }
+                    return false;
+                }
+                function UpdateFieldsOnCampChange(campVal, indexVal) {
+                    alert(campVal);
+                    alert(indexVal);
+                    if(campVal != '' && campVal != null) {
+                        afUpdateOnCampaignSelect(indexVal);
+                        //lockScreen(true, 'Opportunity Change..');
+                    }
+                    return false;
+                }
+
+
+                function editReason(v) {
+                    $(v).qtip({
+                        content: $(v).next().html(),
+                        show: true,
+                        hide: 'unfocus',
+                        style: {
+                            classes: 'qtip-bootstrap qtip-shadow',
+                            width: 300,
+                            height: 200
+                        },
+                        events: {
+                            render: function(event, api) {
+                                $('button.btn-cancel', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                });
+                                $('button.btn-ok', api.elements.content).click(function(e) {
+                                    var textarea=$(v).closest('td').find('textarea');
+                                    var newValue = $(e.target).closest('.qtip-content').find('textarea').val();
+                                    textarea.val(newValue);
+                                    textarea.text(newValue);
+                                    api.hide(e);
+                                });
+                            },
+                            hide: function(event, api) { api.destroy(); }
+                        }
+                    });
+                }
+
+                function prodSubTypeReason(v) {
+                    $(v).qtip({
+                        content: $(v).next().html(),
+                        show: true,
+                        hide: 'unfocus',
+                        style: {
+                            classes: 'qtip-bootstrap qtip-shadow',
+                            width: 300,
+                            height: 200
+                        },
+                        events: {
+                            render: function(event, api) {
+                                $('button.btn-cancel', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                });
+                                $('button.btn-ok', api.elements.content).click(function(e) {
+                                    var textarea=$(v).closest('td').find('textarea');
+                                    var newValue = $(e.target).closest('.qtip-content').find('textarea').val();
+                                    textarea.val(newValue);
+                                    textarea.text(newValue);
+                                    api.hide(e);
+                                });
+                            },
+                            hide: function(event, api) { api.destroy(); }
+                        }
+                    });
+                }
+
+                function changeGAU(v) {
+                    if($(v).val()!='' && $(v).val()=='600') $(v).closest('td').find('.reason-for-suspense').removeClass('invisible');
+                }
+
+                var currentCredit = null;
+                function changeCredit(v,id,name,number) {
+                    currentCredit = $(v);
+                    if(currentCredit.is(':checked')){
+                        currentCredit.prop('checked',false);
+                        lookupDonor(id,name,number);
+                    }else{
+                        currentCredit.closest('td').find('.soft-credit').addClass('invisible');
+                        currentCredit = null;
+                    }
+                }
+
+                function editCredit(v) {
+                    $(v).qtip({
+                        content: {
+                            title: '<strong>Soft Credit Donor Info</strong>',
+                            text:$(v).next().html()
+                        },
+                        position: {
+                            my: 'right center',
+                            at: 'left center'
+                        },
+                        show: true,
+                        hide: 'unfocus',
+                        style: {
+                            classes: 'qtip-bootstrap qtip-shadow',
+                            width: 300
+                        },
+                        events: {
+                            render: function(event, api) {
+                                $('button,a', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                });
+                            },
+                            hide: function(event, api) { api.destroy(); }
+                        }
+                    });
+                }
+
+            </script>
+
+        </apex:define>
+    </apex:composition>
+</apex:page>

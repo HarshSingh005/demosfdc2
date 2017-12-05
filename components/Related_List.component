@@ -1,0 +1,221 @@
+<apex:component controller="Related_ListController" allowDML="true" id="relatedlistcomponent">
+    <style>
+    .clickableHeader {
+        cursor: pointer;
+        width: 100%;
+    }
+    .paginatorWrap {
+        background: url("/img/alohaSkin/listFooter.png") repeat-x scroll 0 0 #F2F2F2;
+        border: 1px solid #EAEAEA;
+        background-color: #F3F3F3;
+        border-top: 1px solid #FFFFFF;
+        padding: 5px;
+    }
+    
+    .noRecordsFound {
+        border: 1px solid #D4DADC;
+        padding: 4px;
+    }
+    
+    .imageAsc {
+        background: url("/img/alohaSkin/sortArrows.png") no-repeat scroll left top transparent;
+        height: 8px;
+        margin: 0 5px;
+        vertical-align: -1px;
+        width: 7px;
+    }
+    
+    .imageDesc {
+        background: url("/img/alohaSkin/sortArrows.png") no-repeat scroll 0px -12px transparent;
+        background-repeat: no-repeat;
+        height: 8px;
+        margin: 0 5px; 
+        vertical-align: -1px;
+        width: 7px;
+    }
+    
+    .pShowMore{
+        padding: 9px 0 2px 5px;
+        text-align: left;
+        display: block;
+    }
+    .noRowsHeader {
+        border: 1px solid rgb(221, 213, 213);
+        background-color: #f8f8f8;
+        background-image: none;
+        font-size: 0.9em;
+        font-weight: normal;
+        padding: 5px;
+    }
+    </style>
+    
+    <apex:attribute name="p_fieldsCSV" type="String" assignTo="{!fieldsCSV}" description="Comma separated list of API field names that will be displayed in the relatedList. If defined, this will override the fieldsList attribute."/> 
+    <apex:attribute name="p_fieldsList" type="String[]" assignTo="{!fieldsList}" description="List collection variable containing the API field names that will be displayed in the related list."/>
+    <apex:attribute name="p_filter" type="string" assignTo="{!filter}" description="Additional filter criteria applied to the objects returned. This shoud not start with 'where' keyworld, simply 'Active = true AND ...'."/> 
+    
+    <apex:attribute name="p_hideActionLinks" type="Boolean" description="If set to true this will hide the Action links in the first column."/>
+    <apex:attribute name="p_hideButtons" type="Boolean" description="Hide the New button, button will only be displayed if current user has create permission on this object."/>
+    <apex:attribute name="p_actionToInvoke" type="ApexPages.Action" description="Specify a function that needs to be execute on the 'New' button."/>
+    <apex:attribute name="p_objectName" type="String" assignTo="{!objectName}" description="The API name of the object representing this related list" required="true"/>
+    <apex:attribute name="p_orderByFieldName" type="String" assignTo="{!orderByFieldName}" description="List of records will be ordered by this field on initial load of the related list."/>
+    <apex:attribute name="p_pageSize" type="Integer" assignTo="{!pageSize}" description="Sets the number of records in each page set."/>
+    <apex:attribute name="p_parentFieldId" type="String" assignTo="{!searchFieldValue}" description="The 15 or 18 digit Id of the parent record for this related list." required="true"/>
+    <apex:attribute name="p_parentFieldName" type="String" assignTo="{!searchFieldName}" description="The API name of the relationship field for the related list. For example: AccountId on Opportunity object." required="true"/>
+    <apex:attribute name="p_sortDirection" type="String" assignTo="{!sortDirection}" description="Initial sort order of the related list on load. Valid values are 'asc' and 'desc'."/>
+    <apex:attribute name="p_title" type="String" assignTo="{!title}" description="overrides the standard object plural label if provided"/>
+    <apex:attribute name="p_moreLink" type="String" assignTo="{!moreLink}" description="target url for the more>> link"/>
+    <apex:attribute name="p_returnUrl" type="String" assignTo="{!returnUrl}" description="Please define the return URL."/>
+    <apex:attribute name="p_showAsStandardRelatedList" type="Boolean" assignTo="{!showAsStandardRelatedList}" description="Please set to true if need to display related list in standard style ( Without pagination options )."/>
+    
+    
+    <apex:pageBlock id="pageBlock"  title="{!IF(p_title != null, title, objectDescribe.LabelPlural)}">
+    <!--
+       <apex:pageBlockButtons location="top" >
+          <apex:commandButton rendered="{!IF(p_hideButtons,false,true)}" value="New {!objectDescribe.label}" action="{!p_actionToInvoke}" /> 
+          <apex:commandButton rendered="{!IF(p_hideButtons,false,true)}" value="Cancel" onclick="window.location.href = '{!p_returnUrl}'; return false;" />
+          
+          <apex:actionStatus onStart="lockScreen(true)" id="myStatus" onstop="lockScreen(false)"/>
+      </apex:pageBlockButtons>
+      -->
+      <apex:outputPanel rendered="{!OR(ISNULL(records),records.size == 0)}" >
+        <div class="noRowsHeader">No records to display</div>
+       </apex:outputPanel>
+      
+       <apex:pageBlockTable value="{!records}" var="r" rendered="{!AND(NOT(ISNULL(records)),records.size > 0)}">
+          <apex:column headerValue="Action" rendered="{!IF(p_hideActionLinks,false,true)}" styleClass="actionColumn">
+                <apex:outputLink rendered="{!AND($ObjectType[objectName].accessible, $ObjectType[objectName].updateable)}" value="/{!r.Id}/e?retURL={!$CurrentPage.url}" styleClass="actionLink">Edit</apex:outputLink> 
+                <apex:outputText rendered="{!AND($ObjectType[objectName].accessible, $ObjectType[objectName].updateable)}"> |&nbsp; </apex:outputText>
+                <apex:commandLink rendered="{!AND($ObjectType[objectName].accessible, $ObjectType[objectName].deletable)}" value="Del" onclick="if(!confirm('Are you sure you want to delete this Preference?')) return false;" action="{!deleteRecord}" rerender="pageBlock" styleClass="actionLink" status="myStatus">
+                    <apex:param name="deleteRecordId" assignTo="{!deleteRecordId}" value="{!r.id}"/>
+                </apex:commandLink>
+            </apex:column>
+            
+             <!-- Loop through list of field names to dynamically render the correct columns -->
+            <apex:repeat value="{!fieldNames}" var="fld">
+               
+                <apex:column headerClass="{!fieldAlignMap[fld]}" styleClass="{!fieldAlignMap[fld]}">
+                    <apex:facet name="header">
+                        <apex:outputPanel layout="block" styleClass="clickableHeader">
+                          
+                            <apex:actionSupport event="onclick" action="{!sortByFieldAction}" rerender="pageBlock" status="myStatus">
+                                <apex:param name="sortByField" value="{!fld}" assignTo="{!sortByField}"/>
+                                
+                            </apex:actionSupport>
+                            
+                           
+                            <apex:outputText value="{!nameLabelMap[fld]}"/>
+                            
+                          
+                            <apex:outputPanel id="directionIcon" rendered="{!sortByField = fld}">
+                                <apex:image styleClass="imageDesc" value="/s.gif" rendered="{!fieldSortDirectionMap[fld] = 'desc'}"/>
+                                <apex:image styleClass="imageAsc" value="/s.gif" rendered="{!fieldSortDirectionMap[fld] = 'asc'}"/>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:facet>
+
+                    <apex:outputField value="{!r[fld]}" rendered="{!fld<>'Name'}"/>
+                    <apex:outputlink value="/{!r.Id}" rendered="{!fld=='Name'}">{!r[fld]}</apex:outputlink>
+
+                </apex:column>
+            </apex:repeat>
+       </apex:pageBlockTable> 
+
+       <apex:outputPanel layout="block" styleClass="pShowMore" rendered="{!AND(showAsStandardRelatedList, records.size > 0, NOT(ISNULL(pageSize)))}">
+            
+
+                    <apex:commandLink value="{!showMoreLink}" action="{!showMore}" rerender="pageBlock" status="myStatus" rendered="{!showAsStandardRelatedList}">
+                    </apex:commandLink>  
+                    <apex:outputText rendered="{!AND(NOT(ISBLANK(p_moreLink)),NOT(ISBLANK(showMoreLink)))}">&nbsp;|&nbsp;</apex:outputText>
+                    <apex:outputLink rendered="{!NOT(ISBLANK(p_moreLink))}" value="{!p_moreLink}">Go to list ({!ssc.ResultSize}) »</apex:outputLink>
+                
+       </apex:outputPanel>
+       <apex:outputPanel layout="block" styleClass="paginatorWrap" rendered="{!AND(NOT(showAsStandardRelatedList), records.size > 0, NOT(ISNULL(pageSize)))}">
+            <div class="paginator">
+                
+                <span class="prevNextLinks">
+                  
+                    <span class="prevNext">
+                        <!-- Show first button if page set has previous page-->
+                        <apex:commandLink value="" action="{!ssc.first}" rendered="{!ssc.pageNumber != 1}" rerender="pageBlock" title="First" status="myStatus">
+                            <img class="first" src="/s.gif" alt="" />
+                        </apex:commandLink>
+                        
+                      
+                        <apex:outputPanel rendered="{!NOT(ssc.hasPrevious)}">
+                            <img class="firstoff" src="/s.gif" alt="" />
+                        </apex:outputPanel>
+                    </span>
+                    
+                    <!-- Previous Button -->
+                    <span class="prevNext">
+                       
+                        <apex:commandLink value="" action="{!ssc.previous}" rendered="{!ssc.hasPrevious}" rerender="pageBlock" status="myStatus">
+                            <img class="prev" src="/s.gif" alt="" />Previous
+                        </apex:commandLink>
+                        
+                       
+                        <apex:outputPanel rendered="{!NOT(ssc.hasPrevious)}">
+                            <img class="prevoff" src="/s.gif" alt="" />Previous
+                        </apex:outputPanel>
+                    </span>
+                    
+                  
+                    <span class="prevNext">
+                        <!-- Show next button if page set has next -->
+                        <apex:commandLink value="" action="{!ssc.next}" rendered="{!ssc.hasNext}" rerender="pageBlock" status="myStatus">
+                            Next<img class="next" alt="Next" title="Next" src="/s.gif" />
+                        </apex:commandLink>
+                        
+                       
+                        <apex:outputPanel rendered="{!NOT(ssc.hasNext)}">
+                            Next<img class="nextOff" alt="Next" title="Next" src="/s.gif" />
+                        </apex:outputPanel>
+                    </span>
+                    
+                    <!-- Last Button -->
+                    <span class="prevNext"> 
+                        <!-- Show last button if page set has next -->
+                        <apex:commandLink value="" action="{!ssc.last}" rendered="{!ssc.hasNext}" title="Last" rerender="pageBlock" status="myStatus">
+                            <img class="last" src="/s.gif" alt="" />
+                        </apex:commandLink>
+                        
+                        <!-- Show disabled last button if page set has no next -->
+                        <apex:outputPanel rendered="{!NOT(ssc.hasNext)}">
+                            <img class="lastoff" src="/s.gif" alt="" />
+                        </apex:outputPanel>
+                    </span>
+                </span>
+                <span class="right">
+                    Page&nbsp;
+                    
+                    <apex:inputText value="{!ssc.pageNumber}" styleClass="pageInput"  onkeypress="return isNumber(event,this)">
+                        <apex:actionSupport event="onchange" rerender="pageBlock" status="myStatus"/>
+                    </apex:inputText>
+                    
+                     of {!CEILING(ssc.ResultSize / ssc.pageSize)} 
+               
+                </span>
+            </div>
+        </apex:outputPanel>
+        
+      
+    </apex:pageBlock>    
+    
+    <script>
+        function isNumber(evt,obj) {
+            evt = (evt) ? evt : window.event;
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if(charCode == 13){
+                
+                obj.onchange();
+                return false;
+            }
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                return false;
+            }
+            return true;
+        }
+    </script>
+   
+   <c:WaitingComponent />
+</apex:component>

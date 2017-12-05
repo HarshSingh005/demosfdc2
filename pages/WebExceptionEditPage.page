@@ -1,0 +1,389 @@
+<apex:page tabStyle="Web_Transaction__c" standardController="Web_Transaction__c" extensions="WebExceptionEditExtensionController" sidebar="false" action="{!redirect}">
+    <head> 
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <apex:stylesheet value="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+        <apex:includeScript value="//code.jquery.com/jquery-2.1.4.min.js"/> 
+        <apex:includeScript value="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"/>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/angular.ngtable/0.3.3/ng-table.js"></script>
+        <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css" />
+        <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js" />
+    </head>
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+
+    <apex:form id="form1">
+    <apex:pageMessages id="msg" />
+    <apex:pageBlock title="Web Exceptions Detail">
+        <apex:pageBlockButtons >
+            <apex:commandButton value="Back to Summary" action="{!URLFOR($Action.Web_Transaction__c.List, $ObjectType.Web_Transaction__c)}"/>
+            <apex:commandButton value="Delete" onclick="if(!confirm('Are you sure you want to delete this web transaction?')){return false};" action="{!deleteRecords}"/>
+            <apex:commandButton value="Post Transaction" action="{!PostTransaction}"/>
+            <apex:commandButton value="Send Follow-up Email" onclick="checkConfirm();return false;"/>
+            <apex:commandButton value="Send Ektron Account Email"/>
+        </apex:pageBlockButtons>
+        <apex:pageblockSection >
+            <apex:outputField value="{!Web_Transaction__c.Name}"/>
+            <apex:outputField value="{!Web_Transaction__c.Status__c}"/>
+            <apex:outputField value="{!Web_Transaction__c.CreatedDate}"/>
+            <apex:outputField value="{!Web_Transaction__c.LastModifiedDate}"/>
+            <apex:outputField label="Last Modified By" value="{!Web_Transaction__c.LastModifiedBy.Name}"/>
+        </apex:pageblockSection>
+        <apex:pageblocksection title="Contact Information" >
+            
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#Household_Contact_Match" onclick="getContacts(); return false;">Household/Contact Match</button>
+            <apex:outputLink target="_blank" value="{!URLFOR($Action.Account.New, $ObjectType.Account, [webtransactionid=Web_Transaction__c.id])}">Create New Account/Contact</apex:outputLink>
+            
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel for="conId" value="Contact" />
+                <apex:actionRegion >
+                    <apex:inputfield id="conId" value="{!Web_Transaction__c.Contact__c}">
+                        <apex:actionSupport event="onchange" action="{!OnContactChanged}" status="waitStatus" reRender="msg,addressComponent,conType,conTitle,conFirstName,conLastName,conSuffix,conCareOf,conEmail,conPhone,conParticipant,conOrigin,conCanSponsor,conMarketingId,conValidate,conMotivatedBy,paymentMethodInfo,donationsSection"/>
+                    </apex:inputfield>
+                </apex:actionRegion>
+            </apex:pageBlockSectionItem>
+
+            <c:AddressValidationComponent id="addressComponent" AddressToValidate="{!address}" required="true" Controllers="{!addressControllers}" HostController="{!host}" ReadOnly="{!IsAddressReadOnly}" WaitStatus="waitStatus" /> 
+            <apex:outputField id="conType" label="Type" value="{!Web_Transaction__c.Contact_Type__c}"/>
+            <apex:outputField id="conTitle" label="Title" value="{!Web_Transaction__c.Contact_Title__c}"/>
+            <apex:outputField id="conFirstName" label="First Name" value="{!Web_Transaction__c.Contact_First_Name__c}"/>
+            <apex:outputField id="conLastName" label="Last Name" value="{!Web_Transaction__c.Contact_Last_Name__c}"/> 
+            <apex:outputField id="conSuffix" label="Suffix" value="{!Web_Transaction__c.Contact_Suffix__c}"/> 
+            <apex:outputField id="conCareOf" label="Care Of" value="{!Web_Transaction__c.Contact_Care_Of__c}"/> 
+            <apex:outputField id="conEmail" label="Email" value="{!Web_Transaction__c.Contact_Email__c}"/>   
+            <apex:outputField id="conPhone" label="Phone" value="{!Web_Transaction__c.Contact_Phone__c}"/>   
+            <apex:outputField id="conParticipant" label="DF Fee Participant" value="{!Web_Transaction__c.Contact_DF_Fee_Participant__c}"/>
+            <apex:outputField id="conOrigin" label="Origin Code" value="{!Web_Transaction__c.Contact_Origin_Code__c}" />
+            <apex:outputField id="conCanSponsor" label="Can Sponsor Children" value="{!Web_Transaction__c.Contact_Can_Sponsor_Children__c}" />
+            <apex:outputField id="conMarketingId" label="Marketing ID" value="{!Web_Transaction__c.Campaign__c}" />
+            <apex:outputField id="conValidate" label="Validate For Sponsorship" value="{!Web_Transaction__c.Contact_Validate_For_Sponsorship__c}" />
+            <apex:outputField id="conMotivatedBy" label="Motivated By" value="{!Web_Transaction__c.Contact_Motivated_By__c}" />
+            <apex:inputcheckbox id="conEktronAccount" label="Create Ektron Account?" />
+            <apex:inputtext id="conEktronPassword" label="Ektron Password" />
+        </apex:pageblocksection>
+        <apex:pageblockSection id="paymentMethodInfo" title="Payment Information">            
+
+            <apex:outputLink target="_blank" value="{!URLFOR($Action.rC_Giving__Payment_Method__c.New, $ObjectType.rC_Giving__Payment_Method__c, [ contactid=Web_Transaction__c.Contact__c] )}" >New Payment Method</apex:outputLink>
+   
+            <apex:outputText value="" />
+            
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel for="paymentMethodList" value="Payment Method" />
+                <apex:actionRegion >
+                    <apex:selectList id="paymentMethodList" value="{!Web_Transaction__c.Payment_Method__c}" multiselect="false" size="1">
+                        <apex:selectOptions value="{!AGPValues}" />
+                        <apex:actionSupport event="onchange" action="{!OnPaymentMethodChanged}" status="waitStatus" reRender="msg,TransType,PaymentType,ExpirationDate,CardType,CardholderName,TransitNumber,AccountNumber,BankName,BillingContactName,CardNumber,CardNumberLast4,donationsSection" />
+                    </apex:selectList>
+                </apex:actionRegion>
+            </apex:pageBlockSectionItem>
+
+           
+            <apex:outputField id="TransType" value="{!Web_Transaction__c.Transaction_Type__c}"/>
+            <apex:outputField id="PaymentType" value="{!Web_Transaction__c.Payment_Type__c}"/>
+            <apex:outputField id="ExpirationDate" value="{!Web_Transaction__c.Expiration_Date__c}"/>
+            <apex:outputField id="CardType" value="{!Web_Transaction__c.Card_Type__c}"/>
+            <apex:outputField id="CardholderName" value="{!Web_Transaction__c.Cardholder_Name__c}"/>
+            <apex:outputField id="TransitNumber" value="{!Web_Transaction__c.ABA_Transit_Number__c}"/>
+            <apex:outputField id="AccountNumber" value="{!Web_Transaction__c.Account_Number__c}"/>
+            <apex:outputField id="BankName" value="{!Web_Transaction__c.Bank_Name__c}"/>
+            <apex:outputField id="BillingContactName" value="{!Web_Transaction__c.Billing_Contact_Name__c}"/>
+            <apex:outputField id="CardNumber" value="{!Web_Transaction__c.Card_Number__c}"/>
+            <apex:outputField id="CardNumberLast4" value="{!Web_Transaction__c.Card_Number_Last_4__c}"/>
+            
+        </apex:pageblockSection>
+
+        <apex:pageBlockSection id="TransactionXMLSection" title="Transaction XML" collapsible="true" >
+            <apex:outputText value="{!Web_Transaction__c.Transaction_XML__c}" escape="true" />
+        </apex:pageBlockSection>
+        <script>  
+            twistSection(document.getElementById('img_{!$Component.TransactionXMLSection}')); 
+        </script>
+
+
+        <apex:pageBlockSection id="donationsSection" title="Donation Information" columns="1">    
+            
+            <apex:variable var="rowCount" value="{!1}" />
+            <apex:repeat value="{!Donations}" var="Donation">
+                <apex:outputText >Item #{!rowCount} of {!DonationCount}</apex:outputText>
+                <apex:inputHidden value="{!Donation.Id}" />
+                <apex:outputField label="Title" value="{!Donation.Name}" />
+                <apex:outputField label="Status" value="{!Donation.rC_Connect__Batch_Upload_Status__c}" />
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="DonationCampaign" value="Campaign" />
+                    <apex:actionRegion >
+                        <apex:inputField id="DonationCampaign" value="{!Donation.rC_Connect__Batch_Upload_Campaign_Matched__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:outputField id="DonationGAU" label="GAU" value="{!Donation.General_Accounting_Unit__c}" />
+                <apex:outputField label="Product Type" value="{!Donation.Product_Type__c}" />
+                <apex:outputField label="Product Sub Type" value="{!Donation.Product_Sub_Type__c}" />
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="GivingFrequency" value="Giving Frequency" />
+                    <apex:actionRegion >
+                        <apex:inputField id="GivingFrequency" value="{!Donation.rC_Connect__Giving_Giving_Frequency__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="GivingAmount" value="Giving Amount" />
+                    <apex:actionRegion >
+                        <apex:inputField id="GivingAmount" value="{!Donation.rC_Connect__Giving_Giving_Amount__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="Participant" value="Participant" />
+                    <apex:actionRegion >
+                        <apex:inputField id="Participant" value="{!Donation.Participant__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="StartDate" value="Start Date" />
+                    <apex:actionRegion >
+                        <apex:inputField id="StartDate" value="{!Donation.rC_Connect__Giving_Close_Date__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="Opportunity" value="Opportunity" />
+                    <apex:actionRegion >
+                        <apex:inputField id="Opportunity" value="{!Donation.rC_Connect__Batch_Upload_Giving_Matched__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="DFCRelatedOpportunity" value="DFC Related Opportunity" />
+                    <apex:actionRegion >
+                        <apex:inputField id="DFCRelatedOpportunity" value="{!Donation.DFC_Related_Opportunity__c}" >
+                            <apex:actionSupport event="onchange" action="{!OnDonationDataChanged}" status="waitStatus" reRender="msg,donationsSection">
+                                <apex:param assignTo="{!DonationId}" name="DonationId" value="{!Donation.Id}" />
+                            </apex:actionSupport> 
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:outputField label="Payment Method" value="{!Donation.rC_Connect__Batch_Upload_Payment_Method_Matched__c}" />
+                <apex:outputField label="Donor" value="{!Donation.rC_Connect__Batch_Upload_Contact_1_Matched__c}" />
+                
+                <apex:variable var="rowCount" value="{!rowCount + 1}" />
+            </apex:repeat>
+        
+        </apex:pageBlockSection>    
+    </apex:pageBlock>
+    <apex:actionFunction action="{!sendFollowupEmail}" name="sendFollowupEmail" rerender="msg"/>
+    </apex:form>
+    
+    
+    
+    <!-- Added by Rohit B on 06/July/2016 for Task T-516362         START -->
+    <apex:form id="formHCM">
+        <div class="modal fade" id="Household_Contact_Match" role="dialog">
+            <div class="modal-dialog" style="width:1100px;">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Household Contact Match</h4>
+                    </div>
+                    <div class="modal-body pbTable">
+                        <apex:pageBlock >
+                            <apex:outputpanel id="hcmOpPageBlockTable" style="display:none;">
+                                <apex:pageblocktable value="{!lstContacts}" var="con" id="hcmPageBlockTable">
+                                    <apex:column value="{!con.Id}" id="hcmConID" onclick="clickMe(this);"/>
+                                    <apex:column value="{!con.Title}" id="hcmTitle" onclick="clickMe(this);"/>
+                                    <apex:column value="{!con.FirstName}" id="hcmFName" onclick="clickMe(this);" />
+                                    <apex:column value="{!con.LastName}" id="hcmLName" onclick="clickMe(this);"/>
+                                    <apex:column value="{!con.rC_Bios__Suffix__c}" id="hcmSuffix" onclick="clickMe(this);"/>
+                                    <apex:column value="{!con.Email}" id="hcmEmail" onclick="clickMe(this);"/>
+                                    <apex:column value="{!con.Phone}" id="hcmPhone" onclick="clickMe(this);"/>
+                                </apex:pageblocktable>
+                            </apex:outputpanel>
+                        </apex:pageBlock>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnHCMOK" onclick="fillData(); return false;">OK</button>
+                        <button type="button" class="btn btn-default" id="btnHCMClose" data-dismiss="modal" onclick="$('[id$=hcmOpPageBlockTable]').hide();">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:actionfunction action="{!getContacts}" name="getContacts" rerender="hcmOpPageBlockTable" oncomplete="showTable();" />
+    </apex:form>
+    <!-- Added by Rohit B on 06/July/2016 for Task T-516362         END -->
+    
+    
+    
+    
+    <script>
+        function checkValidContactValues(){
+            alert('{!invalidContValues}');
+            if({!invalidContValues}){
+                alert('Either associated Contact Name or Contact Number is invalid! Mail is not sent!');
+            }
+        }
+        function checkConfirm(){
+           var confirma = confirm('Are You Sure You want to send the email to the customer');
+           if(confirm){
+               sendFollowupEmail();
+           }
+           return false;
+        }
+        // <!-- Added by Ravi Chauhan on 06/July/2016 for Task T-516365         START -->
+        
+        // Function to open the Modal Window
+        function openModel() {
+            if($('[id$=conId]').val()!= '' && $('[id$=conId]').val()!= null) {
+                populatePaymentMethodFields($('[id$=conId_lkid]').val());
+                //$('#myModal').modal('show');
+            } else {
+                alert('Please select a Contact');
+            }
+        }
+        
+        //Function to save the payment method 
+        function savePaymentMethod(){
+            createPaymentMethod();
+        }
+        
+        //<!-- Added by Ravi Chauhan on 06/July/2016 for Task T-516365         END -->
+        
+        // Added by Ravi Chauhan on 14/July/2016 for Task T-516364 <<START>>
+        function openValidateAddressForm(){
+            if($('[id$=conId]').val()!= '' && $('[id$=conId]').val()!= null){
+                populateAVCWhenContactSelected($('[id$=conId_lkid]').val());
+            } else {
+                populateAVCWhenContactNotSelected($('[id$=conStreet1]').val(),$('[id$=conStreet2]').val(),$('[id$=conCity]').val(),
+                                                  $('[id$=conPostalCode]').val(),$('[id$=conState]').val(),$('[id$=conCountry]').val());
+            }
+        }
+        // Added by Ravi Chauhan on 14/July/2016 for Task T-516364 <<END>>
+    </script>
+    
+    <!-- Added by Rohit B on 06/July/2016 for Task T-516362         START -->
+    <style>
+        .pbTable th.headerRow {
+            text-align : center;
+            padding : 10px;
+        }
+        .pbTable tr {
+            border-bottom : 1px solid #e5e5e5;
+        }
+        .pbTable tr td {
+            padding : 5px;
+        }
+        
+        .required { 
+            border-left: thick solid #ff0000; 
+            float:right;
+        }
+    </style>
+    <script type="text/javascript">
+        function showTable() {
+            //alert('start');
+            $('[id$=hcmOpPageBlockTable]').show();
+            $('[id$=hcmPageBlockTable]').DataTable();
+        }
+
+        var selectedRecordId, selectedRecordTitle, selectedRecordFName, selectedRecordLName;
+        var selectedRecordName, selectedRecordSuffix, selectedRecordEmail, selectedRecordPhone;
+        var wholeConRecord;
+        function clickMe(me) {
+            $('[id$=hcmPageBlockTable] tr').each(function(i, row){
+                $(row).css('background', '');
+            });
+            $(me).parent().css('background', 'lightGray');
+            //alert(selectedRecordId);
+            //alert($(me).parent().get(0).find('span').html());
+            if(selectedRecordId!=$(me).parent().find('[id$=hcmConID] > span').html()) {
+                selectedRecordId = $(me).parent().find('[id$=hcmConID] > span').html();
+                selectedRecordTitle = $(me).parent().find('[id$=hcmTitle] > span').html();
+                selectedRecordFName = $(me).parent().find('[id$=hcmFName] > span').html();
+                selectedRecordLName = $(me).parent().find('[id$=hcmLName] > span').html();
+                selectedRecordName = selectedRecordFName + ' ' + selectedRecordLName;
+                selectedRecordSuffix = $(me).parent().find('[id$=hcmSuffix] > span').html();
+                selectedRecordEmail = $(me).parent().find('[id$=hcmEmail] > span > a').html();
+                selectedRecordPhone = $(me).parent().find('[id$=hcmPhone] > span').html();
+                wholeConRecord = selectedRecordId + ';' + selectedRecordTitle + ';' + selectedRecordFName + ';' + selectedRecordLName + ';' + selectedRecordName + ';' + selectedRecordSuffix + ';' + selectedRecordEmail + ';' + selectedRecordPhone;
+            } else {
+                selectedRecordId = selectedRecordTitle = selectedRecordFName = selectedRecordLName = selectedRecordName = selectedRecordSuffix = selectedRecordEmail = selectedRecordPhone = '';
+                wholeConRecord = '';
+                $(me).parent().css('background', '');
+            }
+            //alert(wholeConRecord);
+            //alert(selectedRecordId);
+        }
+
+        function fillData() {
+            if(selectedRecordId == null || selectedRecordId == '') {
+                alert('Please select a row before proceed..');
+            } else {
+                var foundTitle = false;
+                var foundSuffix = false;
+                $('[id$=conId_lkid]').val(selectedRecordId);
+                $('[id$=conId]').val(selectedRecordName);
+                $('[id$=conFirstName]').val(selectedRecordFName);
+                $('[id$=conLastName]').val(selectedRecordLName);
+                $('[id$=conTitle] option').each(function(){
+                    if($(this).val()==selectedRecordTitle) {
+                        foundTitle = true;
+                    }
+                });
+                if(foundTitle==false && selectedRecordTitle!='' && selectedRecordTitle!=null) {
+                    $("[id$=conTitle]").append($("<option></option>").attr("value",selectedRecordTitle).text(selectedRecordTitle));
+                }
+                $('[id$=conTitle]').val(selectedRecordTitle);
+                $('[id$=conSuffix] option').each(function(){
+                    if($(this).val()==selectedRecordSuffix) {
+                        foundSuffix = true;
+                    }
+                });
+                if(foundSuffix==false && selectedRecordSuffix!='' && selectedRecordSuffix!=null) {
+                    $("[id$=conSuffix]").append($("<option></option>").attr("value",selectedRecordSuffix).text(selectedRecordSuffix));
+                }
+                $('[id$=conSuffix]').val(selectedRecordSuffix);
+                $('[id$=conEmail]').val(selectedRecordEmail);
+                $('[id$=conPhone]').val(selectedRecordPhone);
+                $('#Household_Contact_Match').modal('hide');
+                $('[id$=hcmOpPageBlockTable]').hide();
+            }
+            return false;
+        }
+    </script>
+    <!-- Added by Rohit B on 06/July/2016 for Task T-516362         END -->
+</apex:page>

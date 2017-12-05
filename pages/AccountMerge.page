@@ -1,0 +1,30 @@
+<apex:page showHeader="true" sidebar="true" controller="AccountMergeController">
+	<apex:form id="prefForm">
+		<script type="text/javascript">
+			function redirect() {
+				window.location = "/merge/accmergewizard.jsp?goNext&cid={!from_AccID}&cid={!to_AccID}";
+			}
+		</script>
+		<apex:pageMessages ></apex:pageMessages>
+		<apex:pageBlock id="prefPageBlock" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:actionStatus id="prefActionStatus">
+                    <apex:facet name="stop">
+                        <apex:commandButton value="Continue" action="{!mergeAccounts}" status="MergingAccounts" 
+                            oncomplete="redirect();" disabled="{!!isActive}"/>
+                    </apex:facet>
+                    <apex:facet name="start">
+                        <apex:commandButton value="Merging Accounts..." disabled="true" status="MergingAccounts"/>
+                    </apex:facet>
+                </apex:actionStatus>
+                <apex:commandButton value="Cancel" action="{!cancel}"/>
+            </apex:pageBlockButtons>
+
+            <apex:pageBlockSection id="pbsMessage" columns="1" rendered="{!isActive}">
+            	<div>
+            		If you choose to proceed with merging <b>"{!from_AccName}"</b> into <b>"{!to_AccName}"</b> you must complete the process on the next screen.  Choosing to continue will begin an irreversible process that will corrupt data related to <b>"{!from_AccName}"</b> if cancelled on the next screen.  Once completed the merge cannot be undone. Do you wish to continue?
+            	</div>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+	</apex:form>
+</apex:page>

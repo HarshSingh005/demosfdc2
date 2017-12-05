@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ApexPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>37.0</apiVersion>
+    <availableInTouch>false</availableInTouch>
+    <confirmationTokenRequired>false</confirmationTokenRequired>
+    <description>This page is used to override the edit page layout for Charge Card for  rC_Giving__Payment_Method__c and uses  the AddressValidationComponent</description>
+    <label>EditChargeCard</label>
+    <packageVersions>
+        <majorNumber>2</majorNumber>
+        <minorNumber>69</minorNumber>
+        <namespace>rC_Connect</namespace>
+    </packageVersions>
+    <packageVersions>
+        <majorNumber>2</majorNumber>
+        <minorNumber>68</minorNumber>
+        <namespace>rC_Giving</namespace>
+    </packageVersions>
+</ApexPage>

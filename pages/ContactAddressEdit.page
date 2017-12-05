@@ -1,0 +1,59 @@
+<apex:page standardController="rC_Bios__Contact_Address__c" extensions="ContactAddressEditControllerExtension">
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                    <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                    <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    
+    <apex:form >
+    	<apex:pageBlock title="Contact Address Edit">
+            <apex:pageMessages />
+        	<apex:pageBlockButtons >
+            	<apex:commandButton value="Save" action="{!Save}"/>
+                <apex:commandButton value="Save & New" action="{!SaveAndNew}"/>
+                <apex:commandButton value="Cancel" action="{!Cancel}"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection collapsible="false" title="Information">
+            	<apex:inputField value="{!record.rC_Bios__Contact__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Preferred_Mailing__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Address__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Preferred_Other__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Type__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Do_Not_Mail__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Active__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Verified__c}"/>
+                <apex:inputField value="{!record.rC_Bios__Seasonal_Start_Month__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.rC_Bios__Seasonal_End_Month__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.rC_Bios__Seasonal_Start_Day__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.rC_Bios__Seasonal_End_Day__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.Returned_Mail__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.Informational__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.Care_Of__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.rC_Bios__Attention_Line__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection collapsible="false" title="Original Address Information">
+                <c:AddressValidationComponent AddressToValidate="{!address}" Controllers="{!AddressControllers}" Required="false" WaitStatus="waitStatus"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection collapsible="false" title="Vacation Information">
+            	<apex:inputField value="{!record.rC_Bios__Start_Date__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!record.rC_Bios__End_Date__c}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

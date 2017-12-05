@@ -1,0 +1,7 @@
+<apex:component controller="AGPReminderEmailDonationsListController" access="global">
+    <apex:attribute name="contactId" assignTo="{!hardCreditContactId}" type="string" description="ContactId of the Hard Credit Contact" />
+    
+    <apex:dataList value="{!donations}" var="donation" type="1">
+    	{!donation.Product_Sub_Type__c}&nbsp;{!donation.rC_Giving__Parent__r.rC_Giving__Giving_Frequency__c}&nbsp;deduction&nbsp;of&nbsp;${!donation.amount}&nbsp;from&nbsp;your&nbsp;{!donation.rC_Giving__Payment_Method_Selected__r.RecordType.Name}&nbsp;account&nbsp;(*{!donation.rC_Giving__Payment_Method_Selected__r.rC_Giving__Account_Number_Last_4__c})&nbsp;for&nbsp;{!donation.rC_Giving__Parent__r.Participant__r.Short_Name__c}
+    </apex:dataList>
+</apex:component>

@@ -1,0 +1,65 @@
+<apex:page controller="AccountLookupController" sidebar="false" showHeader="false" title="Account Lookup Page" id="accSearchPage"> 
+	<apex:sectionHeader title="Lookup" />
+	<apex:form id="accSearchForm">
+		<apex:pageBlock id="accSearchPgBlk">
+			<apex:pageBlockSection title="Search" columns="1" id="accSearchPgBlkSec">
+				<apex:pageBlockSectionItem id="accSearchPgBlkSecItm">
+					<apex:outputPanel >
+						<apex:outputText value="Search" />
+						<apex:inputText value="{!searchTxt}" onkeypress="return searchOnEnter(event)"/>
+						<apex:commandButton value="Go!" action="{!doSearch}" reRender="searchResultSection" id="searchBtn"/>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+			<apex:pageBlockSection title="Search Results" id="searchResultSection" columns="1">
+				<apex:pageBlockTable value="{!accList}" var="acc" rendered="{!accList.size > 0}">
+					<apex:column headerValue="Account Name" >
+						<apex:outputLink value="#" onclick="fillIn('{!acc.Name}', '{!acc.id}')">{!acc.Name}</apex:outputLink>       
+					</apex:column>
+					<apex:column value="{!acc.NO_Country__c}" />
+					<apex:column value="{!acc.Office_Type__c}" /> 
+ 				</apex:pageBlockTable>
+			</apex:pageBlockSection>
+		</apex:pageBlock>	
+	</apex:form>
+	<script>
+		function fillIn(name, id)
+		   {
+		      var winMain=window.opener;
+		      if (null==winMain)
+		      {
+		         winMain=window.parent.opener;
+		      }
+		      ele = winMain.document.getElementById('{!$CurrentPage.parameters.fieldId}');
+		      ele.value = name;
+		      ele = winMain.document.getElementById('{!$CurrentPage.parameters.hiddenFldId}');
+		      ele.value = id;
+		      CloseWindow();
+		   }
+		 
+		   function CloseWindow()
+		   {
+		      var winMain=window.opener;
+		      if (null==winMain)
+		      {
+		         winMain=window.parent.opener;
+		      }
+		      winMain.closeLookupPopup();
+		   }
+		 function searchOnEnter(e){               
+	     		if(window.event){                    
+	     			key = window.event.keyCode;     //IE               
+	     		} 
+	     		else{                    
+	     			key = e.which;     //firefox               
+	     		}               
+	     		if(key == 13) {                    
+	     			var ele=document.getElementById('accSearchPage:accSearchForm:accSearchPgBlk:accSearchPgBlkSec:accSearchPgBlkSecItm:searchBtn');
+	     			ele.click();                     
+	     			return false;               
+	     		} else{                    
+	     			return true;               
+	     		}          
+	     	}     
+	</script>
+</apex:page>

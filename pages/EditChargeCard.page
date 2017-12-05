@@ -1,0 +1,87 @@
+<apex:page id="ChargeCard" StandardController="rC_Giving__Payment_Method__c" extensions="ChargeCardController" action="{!redirect}">
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                    <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                    <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    <apex:form id="ChargeCardForm">
+        
+        <apex:actionfunction name="save" action="{!save}" rerender="pbChargeCard" />
+        <apex:actionfunction name="cancel" action="{!cancel}" rerender="pbChargeCard" />
+        
+        <apex:pageBlock id="pbChargeCard" title="{!pageTitle}">
+            <apex:pageMessages />
+            <apex:pageBlockButtons >
+                <apex:commandButton onclick="save(); return false;"  value="Save" />
+                <apex:commandButton onclick="cancel(); return false;"  value="Cancel" />
+            </apex:pageBlockButtons>
+            
+            
+            <apex:pageBlockSection collapsible="false" title="Information" columns="2">
+                <apex:inputField value="{!PaymentMethod.Name}" required="true"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Is_Active__c}"/>                 
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="contactField" value="Contact" />
+                    <apex:actionRegion >
+                        <apex:inputField id="contactField" value="{!PaymentMethod.rC_Giving__Contact__c}" required="true">
+                            <apex:actionSupport event="onchange" action="{!PopulateAccountContactInfo}" status="waitStatus" reRender="addressComponent,cardHolderNameField,billingContactNameField,accountField,phoneField"/>
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Is_Default__c}"/>     
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel for="accountField" value="Account" />
+                    <apex:actionRegion >
+                        <apex:inputField id="accountField" value="{!PaymentMethod.rC_Giving__Account__c}" required="true">
+                            <apex:actionSupport event="onchange" action="{!PopulateAccountContactInfo}" status="waitStatus" reRender="addressComponent,cardHolderNameField"/>
+                        </apex:inputField> 
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+            
+            
+            <apex:pageBlockSection columns="1" collapsible="false" title="Billing Information">
+                <apex:inputField id="phoneField" value="{!PaymentMethod.rC_Connect__Billing_Phone__c}" required="{!isEFTRecordType}" />
+                <c:AddressValidationComponent id="addressComponent" AddressToValidate="{!address}" Required="true" Controllers="{!AddressControllers}" WaitStatus="waitStatus"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection collapsible="false" title="{!accountInfoTitle}" columns="2">
+                <!-- Payment Method | Charge Card Fields | T-517361 : Ravi Chauhan-->
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Holder_Name__c}" id="cardHolderNameField" required="true" rendered="{!isChargeRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Billing_Contact_Name__c}" id="billingContactNameField" required="true" rendered="{!isEFTRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Issuer__c}" required="true" rendered="{!isChargeRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Security_Code__c}" rendered="{!isChargeRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Number__c}" required="true" rendered="{!isChargeRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Expiration_Month__c}" required="true" rendered="{!isChargeRecordType}"/>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Card_Expiration_Year__c}" required="true" rendered="{!isChargeRecordType}"/>
+                
+                <!-- Payment Method | EFT Fields | T-517361 : Ravi Chauhan-->
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Routing Number" for="routingNumber" rendered="{!isEFTRecordType}"/>
+                    <apex:actionRegion >
+                        <apex:inputField id="routingNumber" value="{!PaymentMethod.rC_Giving__Routing_Number__c}" required="true" rendered="{!isEFTRecordType}">
+                            <apex:actionSupport action="{!lookupBankName}" event="onchange" reRender="bankName" status="waitStatus"/>
+                        </apex:inputField>
+                    </apex:actionRegion>
+                </apex:pageBlockSectionItem>
+
+                <apex:inputField id="bankName" value="{!PaymentMethod.rC_Giving__Bank_Name__c}" rendered="{!isEFTRecordType}">
+                    <apex:actionStatus startText="Please wait..." stopText="" id="bankNameStatus" />
+                </apex:inputField>
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Account_Number__c}" required="true" rendered="{!isEFTRecordType}"/>                     
+                <apex:inputField value="{!PaymentMethod.rC_Giving__Account_Type__c}" required="true" rendered="{!isEFTRecordType}"/> 
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

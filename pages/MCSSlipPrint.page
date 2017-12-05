@@ -1,0 +1,212 @@
+<apex:page standardController="Mail_Control_Slip__c" extensions="MCSSlipPrint">
+    
+    <style type="text/css">
+        .Mylinks
+        {
+            color:#000000;
+        }
+        
+        a:visited
+        {
+            color:Blue;
+        }
+
+    </style>
+    <c:WaitingComponent />
+
+    <apex:form >
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script type="text/javascript">
+            $j = jQuery.noConflict();
+            $j(document).ready(function(){
+                //$j('input[id$=sfURL]').val('{!URLFOR($Action.Mail_Control_Slip__c.MCS_Print_Slip_Screen,Mail_Control_Slip__c.Id)}');
+            });
+    
+            function populateNames() {
+
+                //window.alert("in populateNames: " );
+
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childNOSectionItem.childNO_Name}').value =
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childNOSectionItem.childNO}').value;
+
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childLPSectionItem.childLP_Name}').value =
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childLPSectionItem.childLP}').value;
+
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childCommunitySectionItem.childCommunity_Name}').value =
+                 document.getElementById('{!$Component.OuterPageBlock.innerPageBlock.theSection.childCommunitySectionItem.childCommunity}').value;
+
+
+                //$j('input[id$=childNO_Name]').val($j('input[id$=childNO]').val().trim());
+                //$j('input[id$=childLP_Name]').val($j('input[id$=childLP]').val());
+                //$j('input[id$=childCommunity_Name]').val($j('input[id$=childCommunity]').val());
+
+                //window.alert("launching conga");
+                                
+                launchConga();
+            }
+            
+            
+            
+            function PrintElem(elem)
+            {
+                //alert($j(elem).html());
+                Popup($j(elem).html());
+            }
+        
+            function Popup(data) 
+            {
+                var mywindow = window.open('', 'Sub-totals Summary', 'height=600,width=800');
+                mywindow.document.write('<html><head><title>Sub-totals Summary</title>');
+                /*optional stylesheet*/ //mywindow.document.write('<link rel="stylesheet" href="main.css" type="text/css" />');
+                mywindow.document.write('<style>table{width:80%;} .headerRow{text-align: left !important;}</style></head><body >');
+                mywindow.document.write(data);
+                mywindow.document.write('</body></html>');
+        
+                mywindow.document.close(); // necessary for IE >= 10
+                mywindow.focus(); // necessary for IE >= 10
+        
+                mywindow.print();
+                mywindow.close();
+        
+                return true;
+            }
+
+        </script>
+
+        <apex:pageMessages id="pageMessages"/>
+        
+        <apex:actionFunction name="launchConga" action="{!launchConga}" rerender="pageMessages, redirectToConga, redirectToCongaOnButtonClick, innerPageBlock, buttonsRepeat, resultsPanel" oncomplete="lockScreen(false)" /> <!-- oncomplete="redirectToConga()" -->
+        
+        <apex:pageBlock id="OuterPageBlock" title="MCS Slip Print : User {!$User.FirstName}" >
+            <apex:pageBlockButtons >
+                <input type="button" class="btn" value="Generate Documents"  onclick="populateNames(); lockScreen(true, 'Searching...');"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="pbsMessage">
+                <br/><b>MESSAGE: </b>{!urlToRedirect}<br/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlock id="innerPageBlock" title="Print Criteria">
+                <apex:pageBlockSection id="theSection" columns="2">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="MCS Letter Type" for="MCSLetterType"></apex:outputLabel>
+                        <!-- <apex:inputField id="MCSLetterType" value="{!filter.mcs.MCS_Letter_Type__c}" required="true"/> --> 
+                        <apex:selectList id="MCSLetterType" value="{!selectedLetterType}" size="1" title="MCS Letter Type" required="true" label="MCS Letter Type">
+                            <apex:selectOptions value="{!letterTypes}"></apex:selectOptions>
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="MCS From Date" for="fromDate"/> 
+                        <apex:inputField id="fromDate" value="{!filter.mcs.MCS_Date__c}" required="true"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="childNOSectionItem">
+                        <apex:outputLabel value="Child NO" for="childNO"/>
+                        <apex:outputPanel >
+                            <apex:inputField id="childNO" value="{!filter.participant.National_Office__c}" required="true"/>
+                            <apex:inputHidden id="childNO_Name" value="{!NationOfficeName}"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="MCS To Date" for="toDate"/> 
+                        <apex:inputField id="toDate" value="{!filter.mcs.Due_Date__c}" required="true"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="childLPSectionItem">
+                        <apex:outputLabel value="Local Partner" for="childLP"/> 
+                        <apex:outputPanel >
+                            <apex:inputField id="childLP" value="{!filter.participant.Local_Partner__c}"/>
+                            <apex:inputHidden id="childLP_Name" value="{!LocalPartnerName}"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="childCommunitySectionItem">
+                        <apex:outputLabel value="Community" for="childCommunity"/> 
+                        <apex:outputPanel >
+                            <apex:inputField id="childCommunity" value="{!filter.participant.Community__c}"/>
+                            <apex:inputHidden id="childCommunity_Name" value="{!CommunityName}"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputText value="{!filter.mcs.Village__c}"/>
+                    <apex:inputField value="{!filter.mcs.lastmodifiedbyid}" required="false"/>
+                    <!-- <apex:inputHidden id="sfURL" value="{!sfURL}" /> -->
+                </apex:pageBlockSection>
+                
+                <br/>
+                <apex:outputPanel rendered="{!IF(subTotalWrapList != null && subTotalWrapList.size >= 1 && selectedLetterType == 'DF Register',true,false)}">
+                    <div id="tableToPrint" rendered="{!IF(subTotalWrapList != null && subTotalWrapList.size >= 1 && selectedLetterType == 'DF Register',true,false)}">
+                        <apex:pageBlockTable value="{!subTotalWrapList}" var="sub" rendered="{!IF(subTotalWrapList != null && subTotalWrapList.size >= 1 && selectedLetterType == 'DF Register',true,false)}">
+                            <apex:column value="{!sub.communityName}" headerValue="Community Name"/>
+                            <apex:column value="{!sub.localTotal}" headerValue="Local Total"/>
+                            <apex:column value="{!sub.usTotal}" headerValue="USD Total"/>
+                        </apex:pageBlockTable>
+                    <!-- <button id="generatePDF">Print Totals Summary</button> -->
+                    </div>
+                    <input type="button" class="printButton btn" value="Print Sub-totals" onClick="PrintElem('#tableToPrint')" style = "display:none;" rendered="{!IF(subTotalWrapList != null && subTotalWrapList.size >= 1 && selectedLetterType == 'DF Register',true,false)}"/>
+                    <script>
+                        var tempVar = "{!subTotalWrapList.size}";
+                        if(tempVar >= 1) {
+                            $j(".printButton").show();
+                        }else{
+                            $j(".printButton").hide(); 
+                        }
+                    </script>
+                </apex:outputPanel>
+               
+            </apex:pageBlock>
+            <apex:outputPanel id="redirectToConga" >
+                <apex:outputPanel rendered="{!IF(noOfButtons != null && noOfButtons >= 1,true,false)}" id="resultsPanel">
+                    <apex:outputText value="Total Number of records returned are {!mcsListSize} and divided into {!noOfButtons} documents." />
+                        <p/>                
+                        <apex:pageBlock >
+                        
+                          <!-- <apex:pageBlockSection >
+                            <apex:pageBlockSectionItem >
+                                <apex:selectList multiselect="false" size="1" styleClass="congaPages">
+                                    <apex:selectOption itemValue="" itemLabel="Please select document to Print"/>
+                                    <apex:selectOptions value="{!congaButtonsPicklist}"/>
+                                </apex:selectList>                      
+                                <input type="button" class="btn" value="Print Selected Document" onclick="sendTOConga();return false;"/>
+                            </apex:pageBlockSectionItem>
+                          </apex:pageBlockSection> -->
+                        <!-- <apex:repeat value="{!congaButtons}" var="cB" id="theRepeat"> -->
+                        <apex:dataList value="{!congaButtons}" var="cB">
+                            <apex:outputLink value="{!cB.congaURL}" id="theCommandLink" styleClass="MyLinks" target="_blank" > {!cB.fileName} </apex:outputLink> <!-- styleClass="MyLinks" -->
+                        </apex:dataList>
+                        <!-- </apex:repeat> -->
+                    </apex:pageBlock>                
+                    <!-- <apex:variable var="i" value="{!1}"/> -->
+                </apex:outputPanel>
+            </apex:outputPanel>
+    
+            <apex:outputPanel id="redirectToCongaOnButtonClick" >
+                <apex:outputPanel rendered="{!IF(noOfButtons != null && noOfButtons == 1 ,true,false)}">
+                    <script type="text/javascript">
+                        redirectToConga();
+                        function redirectToConga() { 
+                            //alert('{!urlToRedirect}');
+                            var url = '{!congaButtons[0].congaURL}';
+                            console.log('--url--' + url);
+                            //console.log('--urlFromClass--' + {!congaButtons[0].congaURL});
+                            //alert(url);
+                            if(url != '') {
+                                //window.location.href = finalUrl;
+                                window.open(url, '_blank');
+                            } else {
+                                return false;
+                            }
+                            //window.open('{!urlToRedirect}','Conga', '_parent');
+                        } 
+                    </script>
+                    
+                </apex:outputPanel>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+    <script type="text/javascript"> 
+      
+        function sendTOConga() {
+            var congaPages = $j(".congaPages").val();
+            if(congaPages != ''){
+                window.open(congaPages, '_blank');
+            }
+        }
+   </script>
+</apex:page>

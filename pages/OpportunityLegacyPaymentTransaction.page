@@ -1,0 +1,31 @@
+<apex:page standardController="Opportunity" extensions="OpportunityLegacyPaymentTransaction" recordSetVar="opps">
+    <apex:form >
+        <apex:pageBlock title="Apply Interest Payment to Legacy Sponsorships">
+
+        <apex:outputLabel escape="false" value="Aggregate Monthly Interest Payment (for all legacy sponsorships)" for="theinputText"/>
+        <apex:inputText value="{!interestPayment}"   id="theinputText" />
+        <br/><br/>
+
+        <apex:pageMessages id="messages" />
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!submitCPRRequest}" value="Apply Interest Payment to Legacy Sponsorships"/><br/>
+        </apex:pageBlockButtons>
+
+        <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+        <apex:actionStatus id="actStatusId" >
+            <apex:facet name="start" >
+              <img src="/img/loading.gif" />                    
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+            <apex:column value="{!job.Id}"/>
+            <apex:column value="{!job.Status}"/>
+            <apex:column value="{!job.ExtendedStatus}"/>
+            <apex:column value="{!job.JobItemsProcessed}"/> 
+            <apex:column value="{!job.TotalJobItems}"/> 
+            <apex:column value="{!job.NumberOfErrors}"/> 
+        </apex:pageBlockTable>           
+
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,373 @@
+<apex:page showHeader="false" sidebar="false" standardController="Opportunity" extensions="OppPreferenceListController" id="oppPreflistPage">
+    
+    <apex:form id="prefForm">
+        <style>
+            .standardHeight{
+                Height:22px;
+            }       
+            .red{
+                background-color:#CC0000;
+                color:#000000;
+            }
+            .POP_LAYER {
+                width: 100%;
+                height: 200px;
+                //min-height:100%;
+                position: absolute;
+                z-index: 1;
+                overflow: hidden;
+                left: 0px;
+                top: 0px;
+                opacity: .4;
+                filter: alpha(opacity=40);
+                background-color: #CCCCCC;
+            }
+    
+            .POP_LAYER_NONE {
+                display:none;
+            } 
+            
+            /* Changed as per PR-08001 starts */
+            .imgStatusIE{
+               height: 200px;
+               margin-left:38.5%;
+               margin-top: 13.5%;
+               margin-bottom: 15%;
+               text-align: center;
+               width: auto; vertical-align: bottom;"
+            }
+            
+            .imgStatus{
+               height: 200px;
+               margin-top: 45%;
+               margin-bottom: 45%;
+               text-align: center;
+               width: auto; vertical-align: bottom;"
+            }
+            
+            /* Changed as per PR-08001 Ends */
+            
+        </style>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script type="text/javascript">
+            $j = jQuery.noConflict();
+            
+            //funtion on page load
+            $j(readyFn);
+            
+            function lockScreen(doLock){     // New Method added as per PR-08568
+                var detect = navigator.userAgent.toLowerCase();
+                var browser = detect.indexOf('msie') + 1;;
+                if(browser!=0){
+                  document.getElementById('statusImage').className='imgStatusIE';
+                }
+                if(doLock)
+                    document.getElementById('hiddenLayer').className='POP_LAYER';
+                else
+                    document.getElementById('hiddenLayer').className='POP_LAYER_NONE';
+                return true;
+            }
+            
+            function lockScreenWithoutMsg(doLock){
+            
+                var detect = navigator.userAgent.toLowerCase();
+                var browser = detect.indexOf('msie') + 1;;
+                if(browser!=0){
+                  document.getElementById('statusImage2').className='imgStatusIE';
+                }
+            
+                if(document.getElementById('hiddenLayer2') != null){    
+                    if(doLock)
+                        document.getElementById('hiddenLayer2').className='POP_LAYER';
+                    else
+                        document.getElementById('hiddenLayer2').className='POP_LAYER_NONE';
+                }
+                    return true;
+            }
+            
+            function readyFn() {
+                // Code to run when the document is ready.
+                setTimeout(function(){
+                    $j('th[id$="deleteCheckColumnheader"]').css('display','none');
+                    $j('select[id$=prefType]').each(function() {
+                        var a = this.id;
+                        //console.log(a);
+                        var idFirstPart = a.substr(0, a.lastIndexOf(":")+1);
+                        $j('select[id$="' +idFirstPart+ 'prefSubType' + '"]').hide();
+                        $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').hide();
+                        $j('a[id$="' +idFirstPart+ 'prefNationalOffice_lkwgt' + '"]').hide();
+                        $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').hide();
+                        $j('a[id$="' +idFirstPart+ 'prefLocalpartner_lkwgt' + '"]').hide();
+                        $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').hide();
+                        $j('a[id$="' +idFirstPart+ 'prefCommunity_lkwgt' + '"]').hide();
+                        $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').hide();
+                        $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').next().hide();
+                        
+                        
+                        if(this.value == 'National Office'){
+                            $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefNationalOffice_lkwgt' + '"]').show();
+                        }
+                        if(this.value == 'Local Partner'){
+                            $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefLocalpartner_lkwgt' + '"]').show();
+                        }
+                        if(this.value == 'Community'){
+                            $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefCommunity_lkwgt' + '"]').show();
+                        }
+                        if(this.value == 'Birthdate'){
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').show();
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').next().show();
+                        }
+                        if(this.value != 'Community' && this.value != 'Local Partner' && this.value != 'National Office' && this.value != 'Birthdate'){
+                            $j('select[id$="' +idFirstPart+ 'prefSubType' + '"]').show();
+                        }
+                    
+                    });
+                }, 20);    
+            }
+            
+            function assignValues(cntrlValue, id) {
+                //alert('start');
+                var type;
+                var idFirstPart = id.substr(0, id.lastIndexOf(":")+1);
+                //alert('cntrlValue : ' + cntrlValue);
+                if(cntrlValue != '') {
+                    var spiltValues = cntrlValue.split('-');
+                    //alert('spiltValues : ' + spiltValues);
+                    var category = spiltValues[0];
+                    var subCategory = spiltValues[1];
+                    type = spiltValues[2];
+                    var subType = spiltValues[3];
+                    
+                    $j('select[id$="' +idFirstPart+ 'prefCategory' + '"]').val(category);
+                    $j('select[id$="' +idFirstPart+ 'prefCategory' + '"]').trigger("change");
+                    $j('select[id$="' +idFirstPart+ 'prefSubCategory' + '"]').val(subCategory);
+                    $j('select[id$="' +idFirstPart+ 'prefSubCategory' + '"]').trigger("change");
+                    $j('select[id$="' +idFirstPart+ 'prefType' + '"]').val(type);
+                    $j('select[id$="' +idFirstPart+ 'prefType' + '"]').trigger("change");
+                    $j('select[id$="' +idFirstPart+ 'prefSubType' + '"]').val(subType); 
+                    
+                                
+                }
+                else {
+                    $j('select[id$="' +idFirstPart+ 'prefCategory' + '"]').val('');
+                    $j('select[id$="' +idFirstPart+ 'prefCategory' + '"]').trigger("change");
+                    $j('select[id$="' +idFirstPart+ 'prefSubCategory' + '"]').trigger("change");
+                    $j('select[id$="' +idFirstPart+ 'prefType' + '"]').trigger("change");
+                    var type = '';
+
+                }
+                //showHideSubType(type);
+                return false;
+            }
+
+            function showHideSubType(type, id) {
+                //alert(id);
+                //var str = id;
+                var idFirstPart = id.substr(0, id.lastIndexOf(":")+1);
+                
+                //alert(idFirstPart);
+                $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').hide();
+                $j('a[id$="' +idFirstPart+ 'prefNationalOffice_lkwgt' + '"]').hide();
+                $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').hide();
+                $j('a[id$="' +idFirstPart+ 'prefLocalpartner_lkwgt' + '"]').hide();
+                $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').hide();
+                $j('a[id$="' +idFirstPart+ 'prefCommunity_lkwgt' + '"]').hide();
+                $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').hide();
+                $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').next().hide();
+                //alert('type : ' + type);
+                if(type == 'National Office' || type == 'Local Partner' || type == 'Community' || type == 'Birthdate') {
+                    setTimeout(function(){
+                        $j('select[id$="' +idFirstPart+ 'prefSubType' + '"]').hide();
+                        //alert('this.value : ' +  this.value);
+                        if(type == 'National Office'){
+                            $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefNationalOffice_lkwgt' + '"]').show();
+                            $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').val('');
+                            
+                        }
+                        if(type == 'Local Partner'){
+                            $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefLocalpartner_lkwgt' + '"]').show();
+                            $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').val('');
+                        }
+                        if(type == 'Community'){
+                            $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').show();
+                            $j('a[id$="' +idFirstPart+ 'prefCommunity_lkwgt' + '"]').show();
+                            $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').val('');
+                        }
+                        if(type == 'Birthdate'){
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').show();
+                            $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').next().show();
+                            $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').val('');
+                            $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').val('');
+                        }
+                    }, 10);
+                    
+                }
+                else{
+                    $j('select[id$="' +idFirstPart+ 'prefSubType' + '"]').show();
+                    $j('input[id$="' +idFirstPart+ 'prefNationalOffice' + '"]').val('');
+                    $j('input[id$="' +idFirstPart+ 'prefLocalpartner' + '"]').val('');
+                    $j('input[id$="' +idFirstPart+ 'prefCommunity' + '"]').val('');
+                    $j('input[id$="' +idFirstPart+ 'prefBirthDate' + '"]').val('');
+                    
+                }
+                    return false;
+            }
+
+            function preformValidation() {
+                alert('start');
+                var codeValue = $j('select[id$=prefCodeValue]').val();
+                var type = $j('select[id$=prefType]').val();
+                var type_text = $j('select[id$=prefType]').text();
+                var accountID = $j('input[id$=prefAccountID]').val();
+                //var account = $j('input[id$=prefAccountLookup]').val();
+                //alert('Code Value : ' + codeValue);
+                //alert('Type : ' + type);
+                //alert('Type Text : ' + $j('select[id$=prefType]').text());
+                //alert('Account ID : ' + accountID + '; Account : ' + account);
+                if(codeValue == '') {
+                    alert('Please select valid Code Value first..');
+                    return false;
+                }
+                if(type == '' || type_text == '--None--') {
+                    alert('Please select valid Type first..');
+                    return false;
+
+                }
+                else if((type == 'National Office' || type == 'Local Partner' || type == 'Community') && accountID =='') {
+                    alert('Please choose Account of ' + type + ' record type..');
+                    return false;
+                }
+                alert('end');
+                return false;
+            }
+            
+        </script>
+        
+        
+        <div id="hiddenLayer" class="POP_LAYER_NONE" style="height: 200px;">
+           <!--  Changed as per PR-08001 starts  -->
+            <div id="statusImage" class="imgStatus">
+                <img src="/img/loading.gif" /><span style="color:red;"><b>&nbsp;Loading...</b></span>
+            </div>
+        </div>
+        
+        <div id="hiddenLayer2" class="POP_LAYER_NONE" style="height: 200px;">
+            <div id="statusImage2" class="imgStatus">
+                <img src="/img/loading.gif" />
+            </div>
+           
+        </div>
+        
+        <div style="overflow: scroll; width: 100%; height: 200px;">
+        
+            
+            <apex:actionFunction action="{!deletePreference}" name="deleteActionFuntion" rerender="prefPageBlockFields" oncomplete="readyFn();"/>
+            <apex:outputPanel id="prefPanel">
+
+                <apex:outputPanel rendered="{!OR(ISNULL(oppPrefList),oppPrefList.size == 0)}" id="noRcecordsPanel">
+                    <apex:commandButton value="Add Row" action="{!addRow}" status="prefActionStatus" rerender="noRcecordsPanel, prefPanel" onclick="lockScreen(true)" oncomplete="lockScreen(false); readyFn();"/>
+                    <div class="noRowsHeader">No records to display</div>
+                
+                </apex:outputPanel>
+
+            <apex:pageBlock id="prefPageBlockFields" mode="edit" rendered="{!AND(NOT(ISNULL(oppPrefList)),oppPrefList.size > 0)}">
+                <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!saveRecords}" status="prefActionStatus"  onclick="lockScreen(true)"/>
+                <apex:commandButton value="Add Row" action="{!addRow}" status="prefActionStatus" rerender="pageBlockTable" onclick="lockScreen(true)" oncomplete="lockScreen(false); readyFn();"/>
+                    <apex:actionStatus id="prefActionStatus">
+                        <apex:facet name="start">
+                            <img src="/img/loading.gif" alt="Loading graphic"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:pageBlockButtons>
+                
+                <apex:pageMessages id="prefPageMessage"></apex:pageMessages>
+                
+                <apex:pageblocktable value="{!oppPrefList}" var="apl" id="pageBlockTable">
+                
+                    <apex:column headerValue="Action" styleClass="actionColumn">
+                        <apex:commandLink value="Edit" id="theEditLink" action="{!editPreference}"  target="_blank" rendered="{!If(apl.prefObj.Id != null,true, false)}">
+                            <apex:param name="myEditParam" value="{!apl.prefObj.Id}"/>
+                        </apex:commandLink>
+                        <apex:outputText rendered="{!If(apl.prefObj.Id != null,true, false)}"> |&nbsp; </apex:outputText>
+                        <apex:outputLink id="theDeleteLink" onclick="if(!confirm('Are you sure you want to delete this Preference?')) return false; deleteClick(this.id); deleteActionFuntion();  return false;">
+                            Del<apex:param name="myParam" value="{!apl.prefObj.Id}"/>
+                        </apex:outputLink>
+                    </apex:column> 
+                    
+                    <apex:column headerValue="Preference Code">
+                        <apex:selectList id="PrefernceCodeSelected" value="{!apl.selectedPrefCode}" size="1" multiselect="false" onchange="assignValues(this.value, this.id); return false;" >
+                            <apex:selectOptions value="{!apl.prefCodeWrapperPicklist}" id="prefCodeOptions" />
+                        </apex:selectList>
+                    </apex:column>
+                    
+                    <apex:column headerValue="shouldBeDeleted" id="deleteCheckColumn" style="display:none">
+                        <apex:inputText value="{!apl.needsToBeDeleted}" id="hiddenField"/>
+                    </apex:column> 
+                    
+                    <apex:column headerValue="Category" id="categoryColumn">
+                        <apex:inputField id="prefCategory" value="{!apl.prefObj.rC_Bios__Category__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Subcategory" id="subCategoryColumn">
+                        <apex:inputField id="prefSubCategory" value="{!apl.prefObj.rC_Bios__Subcategory__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Type" id="typeColumn">
+                        <apex:inputField id="prefType" value="{!apl.prefObj.rC_Bios__Type__c}" onchange="showHideSubType(this.value, this.id); return false;">
+                        </apex:inputField>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Subtype" id="subTypeColumn">
+                        <apex:inputField id="prefSubType" value="{!apl.prefObj.rC_Bios__Subtype__c}" />
+                        <apex:inputField id="prefLocalpartner" value="{!apl.prefObj.Local_Partner__c}" />
+                        <apex:inputField id="prefNationalOffice" value="{!apl.prefObj.National_Office__c}" />
+                        <apex:inputField id="prefCommunity" value="{!apl.prefObj.Community__c}" />
+                        <apex:inputField id="prefBirthDate" value="{!apl.prefObj.Legacy_Created_Date__c}" style="display: {!if(apl.prefObj.rC_Bios__Type__c=='Birthdate', '', 'none')}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Active?" id="activeCheckColumn">
+                        <apex:inputField id="activeCheckbox" value="{!apl.prefObj.rC_Bios__Active__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="Start Date" id="startDateColumn">
+                        <apex:inputField id="prefStartDate" value="{!apl.prefObj.rC_Bios__Start_Date__c}"/>
+                    </apex:column>
+                    
+                    <apex:column headerValue="End Date" id="endDateColumn">
+                        <apex:inputField id="prefEndDate" value="{!apl.prefObj.rC_Bios__End_Date__c}"/>
+                    </apex:column>
+                </apex:pageblocktable>
+            </apex:pageBlock>
+            </apex:outputPanel>
+        </div>
+        
+        
+    </apex:form>
+    <script>
+        function deleteClick(id){
+            //alert('delete click');
+            //alert('---id--' + id);
+            var idFirstPart = id.substr(0, id.lastIndexOf(":")+1);
+                    
+            //id del button is clicked
+            //if(this.id.split(':')[this.id.split(':').length-1] == 'theDeleteLink'){
+            $j('input[id$="' +idFirstPart+ 'hiddenField' + '"]').val("true");
+            //}
+            
+        }
+    </script>
+</apex:page>

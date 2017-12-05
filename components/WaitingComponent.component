@@ -1,0 +1,105 @@
+<apex:component >
+<style>
+    .standardHeight {
+        Height: 22px;
+    }
+    
+    .red {
+        background-color: #CC0000;
+        color: #000000;
+    }
+    
+    .POP_LAYER {
+        background-color: black;
+        opacity: 0.20;
+        filter: alpha(opacity =   20);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 9998;
+    }
+    
+    .POP_LAYER_NONE {
+        display: none;
+    }
+    
+    .imgStatusIE {
+        height: 20%;
+        margin-left: 38.5%;
+        margin-top: 13.5%;
+        margin-bottom: 15%;
+        text-align: center;
+        width: auto;
+        vertical-align: bottom;
+    }
+    
+    .imgStatus {
+        background-color: white;
+        border-width: 1px;
+        border-style: solid;
+        z-index: 9999;
+        left:50%;
+        top: 50%;
+        padding: 10px;
+        position: fixed;
+        width: 100px;
+        
+    }
+</style>
+
+    <script>
+        function lockScreen(doLock, msg){     
+            var detect = navigator.userAgent.toLowerCase();
+            var browser = detect.indexOf('msie') + 1;;
+            if(browser!=0){
+              document.getElementById('statusImage').className='imgStatusIE';
+            }
+            if(doLock){
+                document.getElementById('hiddenLayer').className='POP_LAYER';
+                document.getElementById('statusImage').style.display="block";
+                document.getElementById('spanStatus').innerHTML='<b>&nbsp;  '+msg+'</b>';
+            }
+            else{
+                document.getElementById('hiddenLayer').className='POP_LAYER_NONE';
+                document.getElementById('statusImage').style.display="none";
+                document.getElementById('spanStatus').innerHTML='<b>&nbsp;  '+msg+'</b>';
+                }
+            return true;
+        }
+    </script>
+    <div id="hiddenLayer" class="POP_LAYER_NONE"></div>
+    <div style="">
+    <div id="statusImage" class="imgStatus" style="display:none; width:120px; height:30px; text-align:start;">
+        <img src="/img/loading.gif" />
+        <span id="spanStatus" style="color:red; margin-top:2px; position:absolute;"><b>&nbsp;Processing...</b></span>
+    </div>
+    </div>
+    <script>
+        function lockScreenWithoutMsg(doLock){
+        
+            var detect = navigator.userAgent.toLowerCase();
+            var browser = detect.indexOf('msie') + 1;;
+            if(browser!=0){
+              document.getElementById('statusImage2').className='imgStatusIE';
+            }
+        
+            if(doLock){
+                document.getElementById('hiddenLayer2').className='POP_LAYER';
+                document.getElementById('statusImage2').style.display="block";
+            }
+            else{
+                document.getElementById('hiddenLayer2').className='POP_LAYER_NONE';
+                document.getElementById('statusImage2').style.display="none";
+            }
+                return true;
+        }
+    </script>
+    <div id="hiddenLayer2" class="POP_LAYER_NONE" style="height: 800px;">
+        <div id="statusImage2" class="imgStatus">
+            <img src="/img/loading.gif" />
+        </div>
+    </div>
+
+</apex:component>

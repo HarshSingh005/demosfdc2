@@ -1,0 +1,43 @@
+<apex:page standardController="Account" extensions="MCSCPRRequest" recordSetVar="communities">
+	<apex:form >
+        <apex:pageBlock title="Generate CPR Request">
+
+        <!--apex:outputLabel escape="false" value="Send CPR Requests for Sponsored Participants Only (checked)<br/>
+            Send CPR Requests for Unsponsored Participants Only (unchecked)" for="theCheckbox"/>
+        <apex:inputCheckbox value="{!sendCPROnlyToSponsored}" id="theCheckbox" />
+        <br/><br/-->
+
+        <apex:selectRadio value="{!sendCPROnlyToSponsored}">
+            <apex:selectOption itemValue="true" itemLabel="Send CPR Requests for Sponsored Participants Only"/><br/>
+            <apex:selectOption itemValue="false" itemLabel="Send CPR Requests for Unsponsored Participants Only"/>
+        </apex:selectRadio> 
+
+        <apex:pageMessages id="messages" />
+        <apex:pageBlockButtons >
+            <apex:commandButton action="{!submitCPRRequest}" value="Submit CPR Request"/><br/>
+        </apex:pageBlockButtons>
+
+
+        <apex:pageBlockTable value="{!selected}" var="community">
+            <apex:column value="{!community.Name}"/>
+        </apex:pageBlockTable> 
+
+
+        <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+        <apex:actionStatus id="actStatusId" >
+            <apex:facet name="start" >
+              <img src="/img/loading.gif" />                    
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+            <apex:column value="{!job.Id}"/>
+            <apex:column value="{!job.Status}"/>
+            <apex:column value="{!job.ExtendedStatus}"/>
+            <apex:column value="{!job.JobItemsProcessed}"/> 
+            <apex:column value="{!job.TotalJobItems}"/> 
+            <apex:column value="{!job.NumberOfErrors}"/> 
+        </apex:pageBlockTable>           
+
+        </apex:pageBlock>
+	</apex:form>
+</apex:page>

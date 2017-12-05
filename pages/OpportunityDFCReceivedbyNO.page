@@ -1,0 +1,52 @@
+<!--
+
+Modified By                   Modified On                      Description
+Sahil Rathore                 22 Sept 2016                     I-234965 Field Office Sponsor Relations Manager (NO) did not have create permission on obligation account solved that
+                                                               
+
+
+-->
+
+
+<apex:page standardController="Opportunity" extensions="OpportunityDFCReceivedbyNO" recordSetVar="opps">
+    <apex:form >
+
+      <apex:pageMessages id="messages" />
+
+       <apex:pageBlock >
+        <apex:pageBlockSection title="Received by NO - Selection Criteria" collapsible="false">
+<!--Sahil Rathore 22sept 2016 I-234965-->
+            <!--<apex:inputField value="{!myObligation.National_Office__c}"  id="field2" required="true"/>-->
+            
+            <apex:selectList size="1" label="National Office" value="{!nationaloffice}" required="true" multiselect="false">
+                <apex:selectOptions value="{!AccountList}"></apex:selectOptions>
+            </apex:selectList>
+  <!--Sahil Rathore 22sept 2016 I-234965-->         
+           <!--<apex:inputField value="{!myObligation.Release_Date__c}" label="Value Date" required="true" />-->
+           <apex:inputField value="{!mycon.Date_Anniversary__c}" label="Value Date" required="true" />
+           
+
+       </apex:pageBlockSection>
+
+         <apex:pageBlockButtons >
+            <apex:commandButton action="{!submitDFCReceived}" value="Update DFC Obligations: Received by NO"/>
+        </apex:pageBlockButtons>
+
+        <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+        <apex:actionStatus id="actStatusId" >
+            <apex:facet name="start" >
+              <img src="/img/loading.gif" />                    
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+            <apex:column value="{!job.Id}"/>
+            <apex:column value="{!job.Status}"/>
+            <apex:column value="{!job.ExtendedStatus}"/>
+            <apex:column value="{!job.JobItemsProcessed}"/> 
+            <apex:column value="{!job.TotalJobItems}"/> 
+            <apex:column value="{!job.NumberOfErrors}"/> 
+        </apex:pageBlockTable>           
+
+       </apex:pageBlock>
+    </apex:form>
+</apex:page>

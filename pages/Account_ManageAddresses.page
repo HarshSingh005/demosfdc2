@@ -1,0 +1,408 @@
+<apex:page standardcontroller="Account" extensions="Account_ManageAddressesController" action="{!initialize}" cache="false">
+    <apex:includescript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" />
+    <apex:sectionheader title="{!$ObjectType.Account.label}" subtitle="{!Account.Name}" />
+    <apex:pagemessages />
+
+    <style type="text/css">
+        .totalRow th {
+            border: none !important;
+        }
+
+        input[type="text"] {
+            padding: 0.25em;
+        }
+
+        select {
+            padding: 0.25em;
+        }
+
+        input[type="text"].filter_selectable {
+            width: 5em;
+        }
+
+        tr.dataRow {
+            height: 3em !important;
+        }
+
+        .dateInput .dateFormat {
+            display: none;
+        }
+
+        tr.dataRow.noborders td {
+            border: none !important;
+        }
+
+        tr.dataRow .address {
+            font-size: 100%;
+        }
+
+            tr.dataRow .address .streetLine {
+                display: block;
+            }
+
+            tr.dataRow .address .postalCode {
+                display: block;
+            }
+
+        .innerGrid tr, .innerGrid th, .innerGrid td {
+            border: none !important;
+            white-space: nowrap;
+            vertical-align: middle !important;
+        }
+
+        .innerGrid td {
+            height: 1.5em !important;
+            vertical-align: middle !important;
+        }
+
+        th.totalRow.addressType {
+            padding-top: 2em !important;
+        }
+
+        th.totalRow .innerGrid label {
+            font-weight: normal;
+        }
+
+        .different {
+            font-weight: bold;
+            color: orange;
+        }
+    </style>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var street1 = "{!JSENCODE(accountAddressInsert.rC_Bios__Original_Street_Line_1__c)}";
+        var street2 = "{!JSENCODE(accountAddressInsert.rC_Bios__Original_Street_Line_2__c)}";
+        var city = "{!JSENCODE(accountAddressInsert.rC_Bios__Original_City__c)}";
+        var state = "{!JSENCODE(accountAddressInsert.rC_Bios__Original_State__c)}";
+        var code = "{!JSENCODE(accountAddressInsert.rC_Bios__Original_Postal_Code__c)}";
+
+        if (street1 != '' || street2 != '' || city != '' || state != '' || code != '') {
+            $('.accountAddressInsert').show();
+            $('.accountAddressInsert_ShowButton').hide();
+            $('.accountAddressInsert_HideButton').show();
+        }
+
+        $("table tr td a.actionLink:contains('Edit')").click(function () {
+            //$('table.Editable').hide();
+            //$('div.NonEditable').show();
+            $(this).closest('tr').children('td').find('div.NonEditable').toggle();
+            $(this).closest('tr').children('td').find('div.Editable').toggle();
+            //$(this).closest('tr').children('td').find('div.NonEditable').hide();
+            //$(this).closest('tr').children('td').find('table.Editable').show();
+        });
+
+       // RCSBIRD-4414 - Remove "Original" from Label
+       $("tr td.labelCol").each(function() {
+           var str = $(this).html();
+           if (str.match("^Original")) {
+               str = str.substr(9);
+               $(this).html(str);
+           }
+       });
+        updateSelectEventHandler();
+
+        $(".detailList tr").next().find("td.last").attr("colspan","6");
+
+     });
+     
+     var updateSelectEventHandler = function(event){
+
+        $('.selectAll').click(function() {
+             console.log(this);
+             if ('checked' == $(this).attr('checked')) {
+                 $(this).closest('table').find('.selection').not("[disabled='disabled']").attr('checked', 'checked');
+             } else {
+                 $(this).closest('table').find('.selection').not("[disabled='disabled']").removeAttr('checked');
+             }
+         });
+     };
+    </script>
+
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                    <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                    <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    
+    <apex:form rendered="{!IF(OR(AddressList.size != 0,hasCreateAccessOnAccountAddress), TRUE, FALSE)}">
+        <apex:pageblock title="Manage {!$ObjectType.rC_Bios__Address__c.LabelPlural}" mode="Edit">
+            <apex:pageblockbuttons location="top">
+                <apex:commandButton value="Save" action="{!upsertAccountAddressList}" />
+                <apex:commandButton value="Save & Close" action="{!upsertAccountAddressListAndReturn}"/>
+                <apex:commandButton value="Cancel" action="{!URLFOR($Action.Account.View, Account.Id)}" immediate="true" /> 
+            </apex:pageblockbuttons>
+        
+            <apex:pageblocksection columns="1">
+                <apex:pageblocktable var="accountAddress" value="{!AddressList}">
+                    <apex:column headervalue="Action" headerclass="actionColumn booleanColumn" styleclass="actionColumn" rendered="{!accountAddressList.size != 0}">
+                        <apex:outputlink styleclass="actionLink" value="#" target="_self">Edit</apex:outputlink>
+                        <apex:outputtext value=" | " />
+                        <apex:commandlink styleclass="actionLink" value="Del" onclick="return confirm('Are you sure?');" action="{!URLFOR($Action.rc_Bios__Account_Address__c.Delete, accountAddress.rcBiosAccountAddress.Id, [retURL=redirectToSelf.Url])}" />
+                    </apex:column>
+
+                    <apex:column headervalue="Original {!$ObjectType.rC_Bios__Address__c.Label}" styleclass="address">
+                        <apex:facet name="footer">
+                            <apex:outputpanel layout="none" rendered="{!hasCreateAccessOnAccountAddress}">
+                                <!--
+                                <table class="accountAddressInsert" cellpadding="0" cellspacing="0" width="100%">
+                                    <tbody>
+                                        <apex:repeat var="field" value="{!$ObjectType.rC_Bios__Account_Address__c.Fieldsets.rC_Bios__Account_ManageAddresses}">
+                                            <tr class="dataRow noborders">
+                                                <td class="labelCol"><apex:outputtext value="{!field.Label}" /></td>
+                                                <td class="dataCol">
+                                                    <apex:inputfield value="{!accountAddressInsert[field]}" rendered="{!NOT($ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Original_Country__c.Label == field.Label)}" />
+                                                    <apex:inputtext value="{!accountAddressInsert.rC_Bios__Original_Country__c}" maxlength="{!if($Setup.rC_Bios__Address_Setting__c.rC_Bios__Disable_Country_Name_Limit__c,'255','3')}" rendered="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Original_Country__c.Label == field.Label}" />
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>-->
+                                <c:AddressValidationComponent addresstovalidate="{!address}" required="true" controllers="{!AddressControllers}" WaitStatus="waitStatus"/>
+                                <hr/>
+                            </apex:outputpanel>
+                        </apex:facet>
+
+                        <apex:outputpanel id="nonEditPanel" layout="none" styleclass="NonEditable">
+                            <div class="NonEditable">
+                                <!--
+                                <apex:repeat var="field" value="{!$ObjectType.rC_Bios__Account_Address__c.Fieldsets.rC_Bios__Account_ManageAddresses}">
+                                    <apex:outputtext styleclass="attentionLine" value="{!accountAddress[field]}" rendered="{!NOT(ISBLANK(accountAddress[field]))}"><br /></apex:outputtext>
+                                </apex:repeat>
+                                -->
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Street_Line_1__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__Street_Line_1__c))}"><br/></apex:outputText>
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Street_Line_2__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__Street_Line_2__c))}"><br/></apex:outputText>
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__City__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__City__c))}"><br/></apex:outputText>
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__State__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__State__c))}"><br/></apex:outputText>
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Postal_Code__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__Postal_Code__c))}"><br/></apex:outputText>
+                                <apex:outputText styleClass="attentionLine" value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Country__c}" rendered="{!NOT(ISBLANK(accountAddress.rcBiosAccountAddress.rC_Bios__Country__c))}"><br/></apex:outputText>                    
+                            </div>
+                        </apex:outputpanel>
+                        
+                        <apex:outputpanel id="editPanel" layout="none">
+                            <!--
+                            <table class="Editable" cellpadding="0" cellspacing="0" width="100%" style="display: none;">
+                                <tbody>
+                                    <apex:repeat var="field" value="{!$ObjectType.rC_Bios__Account_Address__c.Fieldsets.rC_Bios__Account_ManageAddresses}">
+                                        <tr class="dataRow noborders">
+                                            <td class="labelCol"><apex:outputtext value="{!field.Label}" /></td>
+                                            <td class="dataCol">
+                                                <apex:inputfield value="{!accountAddress[field]}" rendered="{!NOT($ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Original_Country__c.Label == field.Label)}" />
+                                                <apex:inputtext value="{!accountAddress.rC_Bios__Original_Country__c}" maxlength="{!if($Setup.rC_Bios__Address_Setting__c.rC_Bios__Disable_Country_Name_Limit__c,'255','3')}" rendered="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Original_Country__c.Label == field.Label}" />
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table>
+                            -->
+                            <div class="Editable" style="display:none;">
+                                <c:AddressValidationComponent addresstovalidate="{!accountAddress}" required="true" controllers="{!AddressControllers}" WaitStatus="waitStatus"/>
+                                <hr/>
+                            </div>    
+                        </apex:outputpanel>
+                        
+                    </apex:column>
+
+                    <!--
+                    <apex:column headerValue="Verified {!$ObjectType.Address__c.Label}" styleClass="address" rendered="{!accountAddressList.size != 0}" width="15%">
+                        <apex:outputPanel layout="none" rendered="{!'No Changes' == accountAddress.Verified_Different__c}">No Changes</apex:outputPanel>
+
+                        <apex:outputPanel layout="none" rendered="{!'No Changes' != accountAddress.Verified_Different__c}">
+                            <apex:outputText styleClass="streetLine {!IF(UPPER(accountAddress.rC_Bios__Original_Street_Line_1__c) != UPPER(accountAddress.Address__r.Street_Line_1__c),'different','')}" value="{!accountAddress.Address__r.Street_Line_1__c}" />
+                            <apex:outputText styleClass="streetLine {!IF(UPPER(accountAddress.rC_Bios__Original_Street_Line_2__c) != UPPER(accountAddress.Address__r.Street_Line_2__c),'different','')}" value="{!accountAddress.Address__r.Street_Line_2__c}" />
+                            <apex:outputText styleClass="city {!IF(UPPER(accountAddress.rC_Bios__Original_City__c) != UPPER(accountAddress.Address__r.City__c),'different','')}" value="{!accountAddress.Address__r.City__c}" />
+                            <apex:outputText styleClass="separator" value=", " rendered="{!NOT(ISBLANK(accountAddress.Address__r.State__c))}" />
+                            <apex:outputText styleClass="state {!IF(UPPER(accountAddress.rC_Bios__Original_State__c) != UPPER(accountAddress.Address__r.State__c),'different','')}" value="{!accountAddress.Address__r.State__c}" />
+                            <apex:outputText styleClass="separator" value=", " rendered="{!NOT(ISBLANK(accountAddress.Address__r.Country__c))}" />
+                            <apex:outputText styleClass="country {!IF(UPPER(accountAddress.rC_Bios__Original_Country__c) != UPPER(accountAddress.Address__r.Country__c),'different','')}" value="{!accountAddress.Address__r.Country__c}" />
+                            <apex:outputText styleClass="separator" value=" " rendered="{!NOT(ISBLANK(accountAddress.Address__r.Postal_Code__c))}" />
+                            <apex:outputText styleClass="postalCode {!IF(UPPER(accountAddress.rC_Bios__Original_Postal_Code__c) != UPPER(accountAddress.Address__r.Postal_Code__c),'different','')}" value="{!accountAddress.Address__r.Postal_Code__c}" />
+                        </apex:outputPanel>
+                    </apex:column>
+                     -->
+
+                    <apex:column headervalue="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Type__c.Label}" headerclass="booleanColumn" footerclass="addressType booleanColumn" styleclass="addressType booleanColumn">
+                        <apex:outputpanel layout="none">
+                            <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Type__c}" required="false" />
+                        </apex:outputpanel>
+
+                        <apex:facet name="footer">
+                            <apex:inputfield value="{!accountAddressInsert.rC_Bios__Type__c}" required="false" />
+                        </apex:facet>
+
+                    </apex:column>
+
+                    <apex:column headervalue="Seasonal Dates">
+                        <apex:outputpanel layout="none">
+                            <apex:panelgrid columns="4" width="100%" columnclasses="label,month,day,date" frame="none" styleclass="innerGrid seasonal">
+                                <apex:outputpanel layout="inline" />
+
+                                <apex:outputpanel layout="inline">
+                                    <apex:outputlabel value="Month" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select starting and ending month of the year of seasonal validity" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputpanel layout="inline">
+                                    <apex:outputlabel value="Day" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select the starting and ending day of the selected month of seasonal validity" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputpanel layout="inline">
+                                    <apex:outputlabel value="Active Dates" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select the date the address becomes active (top date field) and/or the date the address is no longer active (bottom date field)" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputlabel value="From" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Seasonal_Start_Month__c}" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Seasonal_Start_Day__c}" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Start_Date__c}" />
+
+                                <apex:outputlabel value="To" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Seasonal_End_Month__c}" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Seasonal_End_Day__c}" />
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__End_Date__c}" />
+                            </apex:panelgrid>
+                        </apex:outputpanel>
+
+                        <apex:facet name="footer">
+                            <apex:panelgrid columns="4" width="100%" columnclasses="label,month,day,date" frame="none" styleclass="innerGrid seasonal" rendered="{!hasCreateAccessOnAccountAddress}">
+                                <apex:outputpanel layout="inline" rendered="{!accountAddressList.size == 0}" />
+
+                                <apex:outputpanel layout="inline" rendered="{!accountAddressList.size == 0}">
+                                    <apex:outputlabel value="Month" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select starting and ending month of the year of seasonal validity" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputpanel layout="inline" rendered="{!accountAddressList.size == 0}">
+                                    <apex:outputlabel value="Day" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select the starting and ending day of the selected month of seasonal validity" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputpanel layout="inline" rendered="{!accountAddressList.size == 0}">
+                                    <apex:outputlabel value="Active Dates" />
+                                    <apex:outputpanel layout="inline">
+                                        <img src="/s.gif" alt="" class="helpOrb" title="Select the date the address becomes active (top date field) and/or the date the address is no longer active (bottom date field)" style="position: static !important; background-position: 20px 0px !important;" />
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+
+                                <apex:outputlabel value="From" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Seasonal_Start_Month__c}" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Seasonal_Start_Day__c}" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Start_Date__c}" />
+
+                                <apex:outputlabel value="To" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Seasonal_End_Month__c}" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Seasonal_End_Day__c}" />
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__End_Date__c}" />
+                            </apex:panelgrid>
+                        </apex:facet>
+                    </apex:column>
+
+                    <apex:column headervalue="Flags">
+                        <apex:outputpanel layout="none">
+                            <apex:panelgrid columns="2" width="100%" columnclasses="label,checkbox,label,checkbox" frame="none" styleclass="innerGrid preferences">
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Active__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Active__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Preferred_Billing__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Preferred_Billing__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Preferred_Shipping__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Preferred_Shipping__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddress.rcBiosAccountAddress.rC_Bios__Do_Not_Mail__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Do_Not_Mail__c.Label}" />
+                            </apex:panelgrid>
+                        </apex:outputpanel>
+
+                        <apex:facet name="footer">
+                            <apex:panelgrid columns="2" width="100%" columnclasses="label,checkbox,label,checkbox" frame="none" styleclass="innerGrid preferences" rendered="{!hasCreateAccessOnAccountAddress}">
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Active__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Active__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Preferred_Billing__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Preferred_Billing__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Preferred_Shipping__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Preferred_Shipping__c.Label}" />
+
+                                <apex:inputfield value="{!accountAddressInsert.rC_Bios__Do_Not_Mail__c}" />
+                                <apex:outputlabel value="{!$ObjectType.rC_Bios__Account_Address__c.Fields.rC_Bios__Do_Not_Mail__c.Label}" />
+                            </apex:panelgrid>
+                        </apex:facet>
+                    </apex:column>
+
+                    <apex:column headerclass="booleanColumn actionColumn" styleclass="booleanColumn actionColumn">
+                        <apex:outputlink title="View on Google Maps" value="https://maps.google.com/maps?q={!accountAddress.rcBiosAccountAddress.rC_Bios__Original_Street_Line_1__c},+{!accountAddress.rcBiosAccountAddress.rC_Bios__Original_City__c},+{!accountAddress.rcBiosAccountAddress.rC_Bios__Original_State__c}+{!accountAddress.rcBiosAccountAddress.rC_Bios__Original_Country__c}+{!accountAddress.rcBiosAccountAddress.rC_Bios__Original_Postal_Code__c}&hl=en&t=m&z=14" target="_blank">
+                            <apex:image value="https://maps.gstatic.com/intl/en_ALL/mapfiles/vt/mapsgl_promo_v2.png" /><!-- https://maps.gstatic.com/intl/en_ALL/mapfiles/vt/mapsgl_promo_v3.png -->
+                        </apex:outputlink>
+                    </apex:column>
+                </apex:pageblocktable>
+            </apex:pageblocksection>
+
+            <apex:pageblocksection title="Other Verified {!$ObjectType.rC_Bios__Address__c.LabelPlural} On This {!$ObjectType.Account.Label}" columns="1" collapsible="false" rendered="{!relatedAddressList.size != 0}">
+                <apex:pageblocktable var="relatedAddress" value="{!relatedAddressList}">
+                    <apex:column styleclass="actionColumn" headerclass="actionColumn" headervalue="Action">
+                        <apex:commandlink value="Select" styleclass="actionLink" action="{!insertRelatedAddress}" immediate="true">
+                            <apex:param name="selectedId" value="{!relatedAddress.Id}" />
+                        </apex:commandlink>
+                    </apex:column>
+
+                    <apex:column value="{!relatedAddress.rC_Bios__Street_Line_1__c}" />
+                    <apex:column value="{!relatedAddress.rC_Bios__Street_Line_2__c}" />
+                    <apex:column value="{!relatedAddress.rC_Bios__City__c}" />
+                    <apex:column value="{!relatedAddress.rC_Bios__State__c}" />
+                    <apex:column value="{!relatedAddress.rC_Bios__Country__c}" />
+                    <apex:column value="{!relatedAddress.rC_Bios__Postal_Code__c}" />
+
+                    <apex:column headerclass="booleanColumn actionColumn" styleclass="booleanColumn actionColumn">
+                        <apex:outputlink title="View on Google Maps" value="https://maps.google.com/maps?q={!relatedAddress.rC_Bios__Street_Line_1__c},+{!relatedAddress.rC_Bios__City__c},+{!relatedAddress.rC_Bios__State__c}+{!relatedAddress.rC_Bios__Country__c}+{!relatedAddress.rC_Bios__Postal_Code__c}&hl=en&t=m&z=14" target="_blank">
+                            <apex:image value="https://maps.gstatic.com/intl/en_ALL/mapfiles/vt/mapsgl_promo_v2.png" />
+                        </apex:outputlink>
+                    </apex:column>
+                </apex:pageblocktable>
+            </apex:pageblocksection>
+        </apex:pageblock>
+    </apex:form>
+
+    <style type="text/css">
+        .custPopup {
+            background-color: white;
+            z-index: 9999;
+            left: 50%;
+            padding: 10px;
+            position: absolute;
+            width: 60%;
+            margin-left: -30%;
+            top: 100px;
+        }
+
+        .popupBackground {
+            background-color: black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+    </style>
+
+</apex:page>

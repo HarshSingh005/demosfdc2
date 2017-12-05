@@ -1,0 +1,236 @@
+<apex:page showHeader="true" sidebar="true" standardController="rC_Bios__Preference__c" extensions="PreferencesController">
+        <apex:form id="prefForm">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+            <!-- <apex:actionFunction name="setRecordType" action="{!setRecordType}" immediate="true"
+                    rerender="prefPageBlockSectionAccount" status="recTypeStatus">
+                <apex:param name="param" value="" assignTo="{!type}"/>
+            </apex:actionFunction> -->
+
+            <apex:pageMessages id="prefPageMessage"></apex:pageMessages>
+            <apex:pageBlock id="prefPageBlock" mode="edit">
+                <apex:pageBlockButtons >
+                    <apex:actionStatus id="prefActionStatus">
+                        <apex:facet name="stop">
+                            <apex:commandButton value="Save" action="{!saveRecord}" status="savingRecord" 
+                                rerender="" onclick="return preformValidation();"/>
+                        </apex:facet>
+                        <apex:facet name="start">
+                            <apex:commandButton value="Saving..." disabled="true" status="savingRecord"/>
+                        </apex:facet>
+                    </apex:actionStatus>
+                    <apex:commandButton value="Cancel" action="{!cancel}"/>
+                </apex:pageBlockButtons>
+
+                <apex:pageBlockSection id="prefPageBlockSection" columns="2">
+                    <apex:pageBlockSectionItem id="prefPageBlockSectionItemCodeValue">
+                        <apex:outputLabel value="Code Value" for="prefCodeValue" />
+                        <apex:selectList id="prefCodeValue" value="{!codeValue}" size="1" 
+                                        onchange="assignValues(this.value); return false;">
+                            <apex:selectOptions value="{!selCodeValues}"/>
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Record type" for="prefRecordType"/>
+                        <apex:outputText id="prefRecordType" value="{!recType}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="prefPageBlockSectionItemCategory">
+                        <apex:outputLabel id="prefCategoryLable" value="Category" for="prefCategory"/>
+                        <apex:inputField id="prefCategory" value="{!pref.rC_Bios__Category__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel id="prefOpportunityLable" value="Opportunity" for="prefOpportunity"/>
+                        <apex:outputPanel > 
+                        	<apex:outputText id="prefOpportunityName" value="{!opportunity}" 
+                        		rendered="{!Not(isOptyEmpty)}"/>
+                        	<apex:inputField id="prefOpportunity" value="{!pref.rC_Sponsorship__Opportunity__c}" 
+                        		rendered="{!isOptyEmpty}"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem id="prefPageBlockSectionItemSubCategory">
+                        <apex:outputLabel id="prefSubCategoryLable" value="Subcategory" for="prefSubCategory"/>
+                        <apex:inputField id="prefSubCategory" value="{!pref.rC_Bios__Subcategory__c}"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField id="prefIsActive" value="{!pref.rC_Bios__Active__c}">
+                    </apex:inputField>
+                    <apex:pageBlockSectionItem id="prefPageBlockSectionItemType">
+                        <apex:outputLabel id="prefTypeLable" value="Type" for="prefType" />
+                        <apex:inputField id="prefType" value="{!pref.rC_Bios__Type__c}" 
+                                onchange="showHideSubType(this.value); return false;">
+                            <!-- <apex:actionStatus id="recTypeStatus">
+                                <apex:facet name="stop" /><apex:facet name="start"><img src="/img/loading.gif" 
+                                    alt="Loading graphic" />
+                                </apex:facet>
+                            </apex:actionStatus> -->
+                        </apex:inputField>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField id="prefStatus" value="{!pref.rC_Bios__Status__c}">
+                    </apex:inputField>
+                    <apex:pageBlockSectionItem id="prefPageBlockSectionItemSubType">
+                        <apex:outputLabel id="prefSubTypeLable" value="Subtype" for="prefSubType"/>
+                        <apex:outputPanel id="prefSubTypeOutputPanel" style="display:none;">
+                            <apex:inputField id="prefSubType" value="{!pref.rC_Bios__Subtype__c}" 
+                                style="display: {!if(pref.rC_Bios__Type__c=='Community' || pref.rC_Bios__Type__c=='Local Partner' || pref.rC_Bios__Type__c=='National Office', 'none', '')};"/>
+                            <apex:inputField id="prefCommunity" value="{!pref.Community__c}" 
+                                style="display: {!if(pref.rC_Bios__Type__c=='Community', '', 'none')};"/>
+                            <apex:inputField id="prefLocalPartner" value="{!pref.Local_Partner__c}" 
+                                style="display: {!if(pref.rC_Bios__Type__c=='Local Partner', '', 'none')}"/>
+                            <apex:inputField id="prefNationalOffice" value="{!pref.National_Office__c}" 
+                                style="display: {!if(pref.rC_Bios__Type__c=='National Office', '', 'none')}"/>
+                            <apex:inputField id="prefBirthDate" value="{!pref.Legacy_Created_Date__c}" 
+                                style="display: {!if(pref.rC_Bios__Type__c=='Birthdate', '', 'none')}"/>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField id="prefStartDate" value="{!pref.rC_Bios__Start_Date__c}">
+                    </apex:inputField>
+                    <apex:inputField id="prefPrefReason" value="{!pref.Preference_Reason__c}">
+                    </apex:inputField>
+                    <apex:inputField id="prefEndDate" value="{!pref.rC_Bios__End_Date__c}">
+                    </apex:inputField>
+                    <apex:inputField id="prefComments" value="{!pref.rC_Bios__Comments__c}">
+                    </apex:inputField>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+            
+            <script type="text/javascript">
+                $j = jQuery.noConflict();
+                
+                $j(document).ready(function(){
+                	hideAll();
+                	//showHideSubType($j('select[id$=prefType]').val());
+            		setTimeout(function(){ 
+            			showHideSubType($j('select[id$=prefType]').val());
+            			$j('select[id$=prefCodeValue]').focus();
+            			//alert('end');
+            		}, 2000);
+                });
+
+                function assignValues(cntrlValue) {
+                    //alert('start assignValues');
+                    var type;
+                    //alert('cntrlValue : ' + cntrlValue);
+                    if(cntrlValue != '') {
+                        var spiltValues = cntrlValue.split('-');
+                        //alert('spiltValues : ' + spiltValues);
+                        var category = spiltValues[0];
+                        var subCategory = spiltValues[1];
+                        type = spiltValues[2];
+                        var subType = spiltValues[3];
+                        $j('select[id$=prefCategory]').val(category);
+                        $j('select[id$=prefCategory]').trigger("change");
+                        $j('select[id$=prefSubCategory]').val(subCategory);
+                        $j('select[id$=prefSubCategory]').trigger("change");
+                        $j('select[id$=prefType]').val(type);
+                        $j('select[id$=prefType]').trigger("change");
+                        $j('select[id$=prefSubType]').val(subType);
+                    }
+                    else {
+                        $j('select[id$=prefCategory]').val('');
+                        $j('select[id$=prefCategory]').trigger("change");
+                        $j('select[id$=prefSubCategory]').trigger("change");
+                        $j('select[id$=prefType]').trigger("change");
+                        var type = '';
+                    }
+                    //alert(type);
+                    //setRecordType(type);
+                    showHideSubType(type);
+                    //alert('end assignValues');
+                    return false;
+                }
+
+                function showHideSubType(type) {
+                    //alert('start showHideSubType');
+                    //alert(type);
+                    
+                    hideAll();
+                    setTimeout(function(){ 
+                        //$j('label[id$=prefSubTypeLable]').hide();
+                        $j('select[id$=prefSubType]').hide();
+                        if(type == 'Community') {
+                            $j('input[id$=prefCommunity]').show();
+                            $j('a[id$=prefCommunity_lkwgt]').show();
+                        }
+                        else if (type == 'Local Partner') {
+                            $j('input[id$=prefLocalPartner]').show();
+                            $j('a[id$=prefLocalPartner_lkwgt]').show();
+                        }
+                        else if (type == 'National Office') {
+                            $j('input[id$=prefNationalOffice]').show();
+                            $j('a[id$=prefNationalOffice_lkwgt]').show();
+                        }
+                        else if(type == 'Birthdate') {
+                        	$j('input[id$=prefBirthDate]').show();
+                        	$j('input[id$=prefBirthDate]').next().show();
+                        }
+                        else
+                        	$j('select[id$=prefSubType]').show();
+
+                        $j('span[id$=prefSubTypeOutputPanel]').show();
+                    }, 10);
+                        
+                    return false;
+                }
+
+                function hideAll() {
+                	$j('select[id$=prefSubType]').hide();
+                	$j('input[id$=prefCommunity]').hide();
+                    $j('a[id$=prefCommunity_lkwgt]').hide();
+                    $j('input[id$=prefLocalPartner]').hide();
+                    $j('a[id$=prefLocalPartner_lkwgt]').hide();
+                    $j('input[id$=prefNationalOffice]').hide();
+                    $j('a[id$=prefNationalOffice_lkwgt]').hide();
+                    $j('input[id$=prefBirthDate]').hide();
+                    $j('input[id$=prefBirthDate]').next().hide();
+                }
+                
+                //Keeping this method because we may required some validation in future for this page
+                function preformValidation() {
+                    //alert('start');
+                    var Opty = $j('input[id$=prefOpportunity]').val();
+                    var codeValue = $j('select[id$=prefCodeValue]').val();
+                    var type = $j('select[id$=prefType]').val();
+                    var type_text = $j('select[id$=prefType]').text();
+                    var accNO = $j('input[id$=prefNationalOffice]').val();
+                    var accLP = $j('input[id$=prefLocalPartner]').val();
+                    var accCom = $j('input[id$=prefCommunity]').val();
+                    var bDate = $j('input[id$=prefBirthDate]').val();
+                    //var account = $j('input[id$=prefAccountLookup]').val();
+                    //alert('Code Value : ' + codeValue);
+                    //alert('Type : ' + type);
+                    //alert('Type Text : ' + $j('select[id$=prefType]').text());
+                    //alert('Account ID : ' + accountID + '; Account : ' + account);
+                    // if(codeValue == '') {
+                    //     alert('Please select valid Code Value first..');
+                    //     return false;
+                    // }
+                    if(Opty == ''){
+                    	alert('Please select Opportunity..');
+                        $j('input[id$=prefOpportunity]').focus();
+                        return false;
+                    }
+                    if(type == '' || type_text == '--None--') {
+                        alert('Please select Type..');
+                        $j('select[id$=prefType]').focus();
+                        return false;
+                    }
+                    else if((type == 'National Office' && accNO == '') || (type == 'Local Partner' && accLP == '') || (type == 'Community' && accCom == '')) {
+                        alert('Please choose Account of ' + type + ' record type..');
+                        if(type == 'National Office')
+                        	$j('input[id$=prefNationalOffice]').focus();
+                        else if(type == 'Local Partner')
+                        	$j('input[id$=prefLocalPartner]').focus();
+                        else if(type == 'Community')
+                        	$j('input[id$=prefCommunity]').focus();
+                        return false;
+                    }
+                    else if(type == 'Birthdate' && bDate == '') {
+                    	alert('Please Enter Birth Date..');
+                    	$j('input[id$=prefBirthDate]').focus();
+                        return false;
+                    }
+                    //alert('end');
+                    return true;
+                }
+            </script>
+        </apex:form>
+</apex:page>

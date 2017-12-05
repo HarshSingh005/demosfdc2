@@ -1,0 +1,17 @@
+<apex:page StandardController="Account" showHeader="false" sidebar="false">
+
+    <apex:form >
+    
+        <c:Related_List p_objectName="rC_Bios__Preference__c" 
+          p_fieldsCSV="Id,RecordType.Name,rC_Bios__Type__c,rC_Bios__Subtype__c,rC_Bios__Category__c,rC_Bios__Subcategory__c,rC_Bios__Start_Date__c,rC_Bios__End_Date__c" 
+          p_pageSize="2" 
+          p_parentFieldId="{!Account.Id}" 
+          p_parentFieldName="rC_Bios__Account__c" 
+          p_orderByFieldName="Id" 
+          p_sortDirection="asc"
+          p_moreLink="/a0H?rlid=RelatedPreferenceList&rC_Bios__Account__c={!Account.Id}"
+          p_returnUrl="/{!Account.Id}"
+          /> 
+          
+    </apex:form>  
+</apex:page>

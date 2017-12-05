@@ -1,0 +1,4 @@
+<apex:page showHeader="false" sidebar="false" controller="ProfilePackageGeneratorController">
+	
+	<apex:outputText escape="true" value="{!packageXML}" /> 
+</apex:page>

@@ -1,0 +1,346 @@
+<apex:page standardController="Contact" extensions="Contact_SnapshotController" showHeader="false" sidebar="false" standardStylesheets="false">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    
+    <style type="text/css">
+        .bs-example{
+            margin : 20px;
+        }
+        
+        .labelClass {
+            background-color : #01DFD7;
+            color : white;
+        }
+        
+        .closeBtn {
+            float : right;
+            margin-top : 7px;
+            margin-bottom : 15px;
+            margin-right : 20px
+        }
+        
+        .printBtn {
+            float : left;
+            margin-top : 7px;
+            margin-bottom : 15px;
+            margin-left : 20px
+        }
+        .sectionHeader {
+            margin-left: 7px;
+        }
+        
+        .clr {
+            clear:both;
+        }
+        .bs-example{margin-top:0px !important}
+    </style>
+    
+    <apex:form >
+            <apex:pageBlock >
+            
+<!--             <input type="button"   onClick="fun();" id="prnBtn" Class="printBtn" value="Print This Page"/> -->
+            <input type="button"   onClick="window.close();" id="closeBtn"  Class="closeBtn" value="Close Snapshot"/>
+            
+            <div class="clr"></div>
+            
+            <apex:outputPanel rendered="{!IF(contactDetailList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">Contact Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Contact'].fields['Contact_Number__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Name'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['rC_Bios__Preferred_Mailing_Address__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['rC_Bios__Preferred_Phone__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['rC_Bios__Preferred_Email__c'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!contactDetailList}" var="contactDetails">
+                            <tr>
+                                <td>{!contactDetails.Contact_Number__c}</td>
+                                <td>{!contactDetails.Name}</td>
+                                <td>{!contactDetails.rC_Bios__Preferred_Mailing_Address__r.Name}</td>
+                                
+                                <apex:outputPanel rendered="{!IF(contactDetails.rC_Bios__Preferred_Phone__c == '', 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Preferred_Phone__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF(contactDetails.rC_Bios__Preferred_Phone__c == 'Home', 'true', 'false')}">
+                                    <td>{!contactDetails.HomePhone}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Work' == contactDetails.rC_Bios__Preferred_Phone__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Work_Phone__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Mobile' == contactDetails.rC_Bios__Preferred_Phone__c, 'true', 'false')}">
+                                    <td>{!contactDetails.MobilePhone}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Assistant' == contactDetails.rC_Bios__Preferred_Phone__c, 'true', 'false')}">
+                                    <td>{!contactDetails.AssistantPhone}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Other' == contactDetails.rC_Bios__Preferred_Phone__c, 'true', 'false')}">
+                                    <td>{!contactDetails.OtherPhone}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF(null == contactDetails.rC_Bios__Preferred_Email__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Preferred_Email__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Home' == contactDetails.rC_Bios__Preferred_Email__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Home_Email__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Work' == contactDetails.rC_Bios__Preferred_Email__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Work_Email__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Assistant' == contactDetails.rC_Bios__Preferred_Email__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Assistant_Email__c}</td>
+                                </apex:outputPanel>
+                                
+                                <apex:outputPanel rendered="{!IF('Other' == contactDetails.rC_Bios__Preferred_Email__c, 'true', 'false')}">
+                                    <td>{!contactDetails.rC_Bios__Other_Email__c}</td>
+                                </apex:outputPanel>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            <apex:outputPanel rendered="{!IF(revenueDetailList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">Revenue Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Contact'].fields['Lifetime_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Last_Gift_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Last_gift_date__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Largest_Gift_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Largest_Gift_Date__c'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!revenueDetailList}" var="revenueDetail">
+                            <tr>
+                                <td>{!revenueDetail.Lifetime_Amount__c}</td>
+                                <td>{!revenueDetail.Last_Gift_Amount__c}</td>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!revenueDetail.Last_gift_date__c}" />
+                                    </apex:outputText>
+                                </td>
+                                <td>{!revenueDetail.Largest_Gift_Amount__c}</td>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!revenueDetail.Largest_Gift_Date__c}" />
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            
+            <apex:outputPanel rendered="{!IF(prospectPlanList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">My Prospect Plan Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Opportunity'].fields['Name'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Prospect_Plan_type__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['StageName'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!prospectPlanList}" var="prospectPlan">
+                            <tr>
+                                <td>{!prospectPlan.Name}</td>
+                                <td>{!prospectPlan.Prospect_Plan_type__c}</td>
+                                <td>{!prospectPlan.StageName}</td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            
+            <apex:outputPanel rendered="{!IF(sponsorshipList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">Sponsorship Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Opportunity'].fields['Opportunity_Group_Id_Start_Date__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['rC_Sponsorship__Sponsorship_Status__c'].Label}</th>
+                            <th>{!$ObjectType['rC_Bios__Relationship__c'].fields['rC_Bios__Contact_2__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['rC_Bios__Gender__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['rC_Bios__Age__c'].Label}</th>
+                            <th>{!$ObjectType['Contact'].fields['Country__c'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!sponsorshipList}" var="sponsorshipDetails">
+                        <!--    <apex:repeat value="{!sponsorshipDetails.rC_Bios__Relationships__r}" var="relationshipDetails"> -->
+                            <tr>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!sponsorshipDetails.Opportunity_Group_Id_Start_Date__c}" />
+                                    </apex:outputText>
+                                </td>
+                                <td>{!sponsorshipDetails.rC_Sponsorship__Sponsorship_Status__c}</td>
+                                <td>{!sponsorshipDetails.Participant__r.Name}</td>
+                                <td>{!sponsorshipDetails.Participant__r.rC_Bios__Gender__c}</td>
+                                <td>{!sponsorshipDetails.Participant__r.rC_Bios__Age__c}</td>
+<!--                                 <td>{!relationshipList.rC_Bios__Contact_2__r.Country__c}</td> -->
+                                <td>{!sponsorshipDetails.Participant__r.National_Office__r.BillingCountry}</td>
+
+<!--                                 <apex:outputPanel rendered="{!IF(relationshipDetails.rC_Bios__Contact_2__r.rC_Bios__Preferred_Mailing_Address__c != null , 'true', 'false')}"> -->
+<!--                                     <td>{!relationshipDetails.rC_Bios__Contact_2__r.rC_Bios__Preferred_Mailing_Address__r.rC_Bios__County__c}</td> -->
+<!--                                 </apex:outputPanel> -->
+                                
+<!--                                 <apex:outputPanel rendered="{!IF(relationshipDetails.rC_Bios__Contact_2__r.rC_Bios__Preferred_Mailing_Address__c == null , 'true', 'false')}"> -->
+<!--                                     <td>{!relationshipDetails.rC_Bios__Contact_2__r.rC_Bios__Preferred_Other_Address__r.rC_Bios__County__c}</td> -->
+<!--                                 </apex:outputPanel> -->
+                            </tr>
+                        <!--    </apex:repeat> -->
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            
+            <apex:outputPanel rendered="{!IF(fundingOpportunityList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">My Funding Opportunity Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Opportunity'].fields['Opportunity_Type__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Prospect_Designation__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['StageName'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Expected_Ask_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Expected_Ask_Date__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Submitted_Donor_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Ask_Date__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['Approved_Donor_Amount__c'].Label}</th>
+                            <th>{!$ObjectType['Opportunity'].fields['CloseDate'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!fundingOpportunityList}" var="fundingOpportunity">
+                            <tr>
+                                <td>{!fundingOpportunity.Opportunity_Type__c}</td>
+                                <td>{!fundingOpportunity.Prospect_Designation__r.Name}</td>
+                                <td>{!fundingOpportunity.StageName}</td>
+                                <td>{!fundingOpportunity.Expected_Ask_Amount__c}</td>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!fundingOpportunity.Expected_Ask_Date__c}" />
+                                    </apex:outputText>
+                                </td>
+                                <td>{!fundingOpportunity.Submitted_Donor_Amount__c}</td>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!fundingOpportunity.Ask_Date__c}" />
+                                    </apex:outputText>
+                                </td>
+                                <td>{!fundingOpportunity.Approved_Donor_Amount__c}</td>
+                                <td>
+                                    <apex:outputText value="{0,date,MMM-dd-yyyy}">
+                                        <apex:param value="{!fundingOpportunity.CloseDate}" />
+                                    </apex:outputText>
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            
+            <apex:outputPanel rendered="{!IF(plannedGivingList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">Planned Giving Details</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['rC_Giving__Planned_Giving__c'].fields['rC_Giving__Stage__c'].Label}</th>
+                            <th>Record Type</th>
+                            <th>{!$ObjectType['rC_Giving__Planned_Giving__c'].fields['Name'].Label}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!plannedGivingList}" var="plannedGiving">
+                            <tr>
+                                <td>{!plannedGiving.rC_Giving__Stage__c}</td>
+                                <td>{!plannedGiving.RecordType.Name}</td>
+                                <td>{!plannedGiving.Name}</td>
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            
+            <div></div>
+            
+            <apex:outputPanel rendered="{!IF(modelingAndPropensityList.size != 0, 'true', 'false')}">
+            <div class="bs-example">
+                <table class="table table-bordered">
+                    <caption class="labelClass"><b class="sectionHeader">Modeling And Propensity</b></caption>
+                    <thead>
+                        <tr>
+                            <th>{!$ObjectType['Modeling_and_Propensity__c'].fields['Age__c'].Label}</th>
+                            <th>{!$ObjectType['Modeling_and_Propensity__c'].fields['Marital_Status__c'].Label}</th>
+<!--                             <th>{!$ObjectType['Modeling_and_Propensity__c'].fields['Planned_Giving_Likelihood__c'].Label}</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!modelingAndPropensityList}" var="modelingAndPropensity">
+                            <tr>
+                                <td>{!modelingAndPropensity.Age__c}</td>
+                                <td>{!modelingAndPropensity.Marital_Status__c}</td>
+<!--                                 <td>{!modelingAndPropensity.Planned_Giving_Likelihood__c}</td> -->
+                            </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+            </div>
+            </apex:outputPanel>
+            <div></div>
+            
+        </apex:pageBlock>
+    </apex:form>
+    
+    <script type="text/javascript">
+        //this is the code for printing the page and closing snapshot
+        function fun(){
+            document.getElementById('prnBtn').style.display='none';
+            document.getElementById('closeBtn').style.display='none';
+                
+            window.print();
+            
+            document.getElementById('prnBtn').style.display='block';
+            document.getElementById('closeBtn').style.display='block';
+        }
+    </script>
+</apex:page>

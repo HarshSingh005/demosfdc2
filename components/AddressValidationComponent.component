@@ -1,0 +1,200 @@
+<apex:component controller="AddressValidationComponentController" allowDml="true">
+    <apex:attribute name="AddressToValidate" description="The address to validate" type="ValidatedAddress" required="true" assignTo="{!Address}" />
+    <apex:attribute name="Caption" description="The caption of the address block" type="string" required="false" />
+    <apex:attribute name="Required" description="If the address should be required as a whole" type="boolean" required="true" assignTo="{!IsAddressRequired}" />
+    <apex:attribute name="Controllers" description="A List<AddressValidationComponentController> which enables host page comunication" type="AddressValidationComponentController[]" required="true" assignTo="{!AddressControllers}"/>
+    <apex:attribute name="HostController" description="The Apex controller hosting the component" type="AddressComponentHostController" required="false" assignTo="{!host}" />
+    <apex:attribute name="ReadOnly" description="Whether the component is editable or not" type="boolean" required="false" assignTo="{!IsReadOnly}" />
+    <apex:attribute name="WaitStatus" description="Id of an apex:actionStatus component to display" type="String" required="false" />
+    <apex:actionRegion >
+    <apex:pageBlockSection id="addressSection" collapsible="false" columns="1" showHeader="true" title="{!Caption}" >
+    	<apex:pageBlockSectionItem rendered="{!IsValidVisible && !IsReadOnly}">
+            <apex:outputLabel value="Valid:" />
+			<apex:inputCheckbox id="validCheckbox" disabled="true" value="{!Address.IsValid}" />
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsValidVisible && !IsReadOnly}">
+            <apex:outputLabel value="Overridden:" />
+			<apex:inputCheckbox id="overrideCheckbox" disabled="true" value="{!Address.IsOverridden}" />
+        </apex:pageBlockSectionItem>
+        
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly}">
+            <apex:outputLabel value="Line 1:" />
+            <apex:outputpanel id="line1RequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsLine1Required}"></apex:outputpanel>
+                <apex:inputText value="{!Address.Line1}" id="Line1" rendered="{!!IsReadOnly}">
+                    <apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="line1RequiredPanel,line2RequiredPanel,line3RequiredPanel,cityRequiredPanel,stateProvRequiredPanel,countryRequiredPanel,postalRequiredPanel,validCheckbox,overrideCheckbox,verifyButton"/>
+                </apex:inputText>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly}">
+            <apex:outputLabel value="Line 1:" />
+            <apex:outputText value="{!Address.Line1}" />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly}">
+            <apex:outputLabel value="Line 2:" />
+            <apex:outputpanel id="line2RequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsLine2Required}"></apex:outputpanel>
+                <apex:inputText value="{!Address.Line2}" id="Line2">
+                    <apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="line1RequiredPanel,line2RequiredPanel,line3RequiredPanel,cityRequiredPanel,stateProvRequiredPanel,countryRequiredPanel,postalRequiredPanel,validCheckbox,overrideCheckbox,verifyButton"/>
+                </apex:inputText>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly}">
+            <apex:outputLabel value="Line 2:" />
+            <apex:outputText value="{!Address.Line2}" />
+        </apex:pageBlockSectionItem>
+
+
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly}">
+            <apex:outputLabel value="Line 3:" />
+            <apex:outputpanel id="line3RequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsLine3Required}"></apex:outputpanel>
+                <apex:inputText value="{!Address.Line3}" id="Line3">
+                    <apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="line1RequiredPanel,line2RequiredPanel,line3RequiredPanel,cityRequiredPanel,stateProvRequiredPanel,countryRequiredPanel,postalRequiredPanel,validCheckbox,overrideCheckbox,verifyButton"/>
+                </apex:inputText>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly}">
+            <apex:outputLabel value="Line 3:" />
+            <apex:outputText value="{!Address.Line3}" />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly && IsStateProvRequired}">
+            <apex:outputLabel value="City:" />
+            <apex:outputpanel id="cityRequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsCityRequired}"></apex:outputpanel>
+                <apex:inputText value="{!Address.City}" >
+              		<apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="line1RequiredPanel,line2RequiredPanel,line3RequiredPanel,cityRequiredPanel,stateProvRequiredPanel,countryRequiredPanel,postalRequiredPanel,validCheckbox,overrideCheckbox,verifyButton"/>
+                </apex:inputText>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly && IsStateProvRequired}">
+            <apex:outputLabel value="City:" />
+            <apex:outputText value="{!Address.City}" />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem id="stateProvSectionItem" rendered="{!IsStateProvRequired && !IsReadOnly}">
+            <apex:outputLabel value="State/Province:" />
+            <apex:outputpanel id="stateProvRequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsStateProvRequired}"></apex:outputpanel>
+                <apex:selectList id="stateProvPicklist" size="1" multiselect="false" value="{!Address.StateProv}">
+                    <apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="addressSection"/>
+                    <apex:selectOptions value="{!StateProvPicklistValues}" />
+                </apex:selectList>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly && IsStateProvRequired}">
+            <apex:outputLabel value="State/Province:" />
+            <apex:outputText value="{!Address.StateProv}" />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly}">
+            <apex:outputLabel value="Country:"/>
+            <apex:outputpanel id="countryRequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsCountryRequired}"></apex:outputpanel>
+                <apex:selectList id="countryPicklist" size="1" multiselect="false" value="{!Address.Country}" >
+                    <apex:actionSupport event="onchange" action="{!CountryChanged}" status="{!WaitStatus}" reRender="addressSection,verifyButton"/>
+                    <apex:selectOptions value="{!CountryPicklistValues}" />
+                </apex:selectList>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly}">
+            <apex:outputLabel value="Country:" />
+            <apex:outputText value="{!Address.Country}" />
+        </apex:pageBlockSectionItem>
+
+        <apex:pageBlockSectionItem rendered="{!!IsReadOnly && IsStateProvRequired}">
+            <apex:outputLabel value="Postal Code:" />
+            <apex:outputpanel id="postalRequiredPanel" layout="block" styleClass="requiredInput">
+                <apex:outputpanel layout="block" styleClass="requiredBlock" rendered="{!IsPostalCodeRequired}"></apex:outputpanel>
+                <apex:inputText value="{!Address.PostalCode}">
+                    <apex:actionSupport event="onchange" action="{!LineChanged}" status="{!WaitStatus}" reRender="line1RequiredPanel,line2RequiredPanel,line3RequiredPanel,cityRequiredPanel,stateProvRequiredPanel,countryRequiredPanel,postalRequiredPanel,validCheckbox,overrideCheckbox,verifyButton"/>
+                </apex:inputText>
+            </apex:outputpanel>
+        </apex:pageBlockSectionItem>
+        <apex:pageBlockSectionItem rendered="{!IsReadOnly && IsStateProvRequired}">
+            <apex:outputLabel value="Postal Code:" />
+            <apex:outputText value="{!Address.PostalCode}" />
+        </apex:pageBlockSectionItem>
+
+    </apex:pageBlockSection>
+
+        <apex:outputPanel id="verifyButton">
+            <apex:commandButton rendered="{!IsValidateButtonVisible && !IsReadOnly}" value="Validate Address" action="{!ValidateAddress}" status="{!WaitStatus}" reRender="dialog" />    
+        </apex:outputPanel>
+	
+    <apex:outputPanel id="dialog">
+        <apex:outputPanel style="background-color:black;opacity: 0.20;filter: alpha(opacity = 20);position: absolute;width: 100%;height: 100%;top: 0;left: 0;z-index: 9998;" layout="block" rendered="{!IsDialogRendered}"/>
+        
+        <apex:outputPanel style="background-color:white;border-width:2px;border-style:solid;z-index:9999;left:50%;padding:10px;position:fixed;width:500px;margin-left:-250px;margin-top:-200px;top:50%;" layout="block" rendered="{!IsNoResultsRendered}">          
+            <apex:outputText value="No results returned." /><hr/>         
+            <apex:commandButton value="OK" action="{!CloseNoResults}" rerender="dialog,verifyButton"/>
+            <apex:commandButton value="Override" action="{!OverrideAddress}" rerender="dialog,verifyButton,addressSection"/>
+        </apex:outputPanel> 
+        
+        <apex:outputPanel style="background-color:white;border-width:2px;border-style:solid;z-index:9999;left:50%;padding:10px;position:fixed;width:500px;margin-left:-250px;margin-top:-200px;top:50%;" layout="block" rendered="{!IsVerifiedAddressRendered}">
+            <apex:dataTable value="{!response.fields}" var="field" styleClass="list" headerClass="headerRow" rowClasses="odd,even">
+                <apex:facet name="caption">Verified address found. Accept changes?</apex:facet>
+                <apex:column value="{!field.label}">
+                    <apex:facet name="header">Field</apex:facet>
+                </apex:column>
+                <apex:column value="{!field.content}">
+                    <apex:facet name="header">Standardized</apex:facet>
+                </apex:column>
+            </apex:dataTable>
+            <hr/> 
+            <apex:commandButton value="Accept" action="{!AcceptVerifyAddress}" rerender="dialog,verifyButton,addressSection"/>
+            <apex:commandButton value="Cancel" action="{!CloseVerifyAddress}" rerender="dialog,verifyButton"/>
+        </apex:outputPanel>
+        
+        <apex:outputPanel style="background-color:white;border-width:2px;border-style:solid;z-index:9999;left:50%;padding:10px;position:fixed;width:500px;margin-left:-250px;margin-top:-200px;top:50%;" layout="block" rendered="{!IsRefinementListRendered}">          
+            <apex:outputLabel value="Verify Level:" />&nbsp;&nbsp;
+            <apex:outputText >{!response.verifyLevel}</apex:outputText><hr/>
+            
+            <table cellpadding="1" cellspacing="1" border="0">
+            	<tr>
+            		<td><apex:outputLabel value="Refine Address:" /></td>
+                    <td>
+            			<apex:selectList value="{!addressId}" multiselect="false" size="1">
+			            	<apex:selectOptions value="{!AddressPicklistValuesList}" />
+			            </apex:selectList>
+            		</td>
+            	</tr>
+            	<tr>
+            		<td><apex:outputLabel value="{!response.prompt}:" /></td>
+            		<td><apex:inputText value="{!Refinement}" /></td>
+            	</tr>
+            </table>
+            
+            <hr/>
+            <apex:commandButton value="Refine Address" action="{!ValidateAddress}" rerender="dialog,verifyButton"/>          
+            <apex:commandButton value="Cancel" action="{!CloseAddressList}" rerender="dialog,verifyButton"/>
+            <apex:commandButton value="Override" action="{!OverrideAddress}" rerender="dialog,verifyButton,addressSection"/>
+        </apex:outputPanel>
+        
+        <apex:outputPanel style="background-color:white;border-width:2px;border-style:solid;z-index:9999;left:50%;padding:10px;position:fixed;width:500px;margin-left:-250px;margin-top:-200px;top:50%;" layout="block" rendered="{!IsMultipleListRendered}">          
+            <apex:outputLabel value="Verify Level:" />&nbsp;&nbsp;
+            <apex:outputText >{!response.verifyLevel}</apex:outputText><hr/>
+            <apex:outputText >{!response.prompt}</apex:outputText><hr/>
+            
+            <table cellpadding="1" cellspacing="1" border="0">
+            	<tr>
+            		<td><apex:outputLabel value="Select Address:" /></td>
+            		<td>
+            			<apex:selectList value="{!addressId}" multiselect="false" size="1">
+			            	<apex:selectOptions value="{!AddressPicklistValuesList}" />
+			            </apex:selectList>
+            		</td>
+            	</tr>
+            </table>
+            
+            <hr/>
+            <apex:commandButton value="Select Address" action="{!ValidateAddress}" rerender="dialog,verifyButton"/>          
+            <apex:commandButton value="Cancel" action="{!CloseAddressList}" rerender="dialog,verifyButton"/>
+            <apex:commandButton value="Override" action="{!OverrideAddress}" rerender="dialog,verifyButton,addressSection"/>
+        </apex:outputPanel>
+    </apex:outputPanel>
+    
+    </apex:actionRegion>
+</apex:component>

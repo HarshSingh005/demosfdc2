@@ -1,0 +1,50 @@
+<apex:page standardController="Opportunity" extensions="OpportunityDFCReceivedbyNO" recordSetVar="opps">
+    <apex:form >
+
+      <apex:pageMessages id="messages" />
+
+       <apex:pageBlock >
+        <apex:pageBlockSection title="Sent to NO - Selection Criteria" collapsible="false">
+
+            <apex:inputField value="{!myObligation.National_Office__c}"  id="field2" required="true"/>
+
+            <apex:inputField value="{!myObligation.Received_by_NO_Date__c}" label="All Obligations Created On or Before:" required="true"/>
+
+        </apex:pageBlockSection>
+
+        <apex:pageBlockSection title="Update Fields" collapsible="false" columns="2">
+
+            <apex:selectList size="1" value="{!selectedCurrency}" label="Currency" required="true">
+                <apex:selectOptions value="{!currencies}"/>
+                <!--apex:actionSupport event="onchange" action="{!checkValue}" /-->
+            </apex:selectList>
+
+            <apex:inputField value="{!myObligation.Exchange_Rate__c}" label="Exchange Rate (US to Local)" required="true"/>
+            <!--apex:inputField value="{!myObligation.Release_Date__c}" /-->
+       
+            <apex:inputfield value="{!myObligation.Release_Date__c}" required="true" />
+
+       </apex:pageBlockSection>
+
+         <apex:pageBlockButtons >
+            <apex:commandButton action="{!submitDFCSenttoNO}" value="Update Obligations: Sent to NO"/>
+        </apex:pageBlockButtons>
+
+        <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+        <apex:actionStatus id="actStatusId" >
+            <apex:facet name="start" >
+              <img src="/img/loading.gif" />                    
+            </apex:facet>
+        </apex:actionStatus>
+        <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+            <apex:column value="{!job.Id}"/>
+            <apex:column value="{!job.Status}"/>
+            <apex:column value="{!job.ExtendedStatus}"/>
+            <apex:column value="{!job.JobItemsProcessed}"/> 
+            <apex:column value="{!job.TotalJobItems}"/> 
+            <apex:column value="{!job.NumberOfErrors}"/> 
+        </apex:pageBlockTable>           
+
+       </apex:pageBlock>
+    </apex:form>
+</apex:page>

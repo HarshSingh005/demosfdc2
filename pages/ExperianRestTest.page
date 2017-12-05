@@ -1,0 +1,104 @@
+<apex:page tabStyle="Account" controller="ExperianRestTestController">
+    <apex:form >
+        <apex:pageBlock title="Experian REST Services Test">
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Search" action="{!searchAddress}" rendered="false"/>
+            	<apex:commandButton value="Verify" action="{!verifyAddress}"/>
+                <apex:commandButton value="Refine" action="{!refineAddress}"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection columns="1" title="Address Info">
+            	<apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Line 1" />
+                    <apex:inputText value="{!Line1}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Line 2" />
+                    <apex:inputText value="{!Line2}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Line 3" />
+                    <apex:inputText value="{!Line3}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="City" />
+                    <apex:inputText value="{!City}"/>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="State" />
+                    <apex:inputText value="{!State}"/>
+                </apex:pageBlockSectionItem> 
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Zip" />
+                    <apex:inputText value="{!Zip}"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Query">
+            	<apex:pageBlockSectionItem >
+                	{!result.query}
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Deserialized Results" columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Prompt" />
+                    <apex:outputText value="{!result.prompt}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Verify" />
+                    <apex:outputText value="{!result.verifyLevel}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Count" />
+                    <apex:outputText value="{!result.count}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Fields" />
+                    <apex:pageBlockTable value="{!result.fields}" var="field">
+                        <apex:column value="{!field.id}">
+                            <apex:facet name="header">id</apex:facet>
+                        </apex:column>
+                        <apex:column value="{!field.label}">
+                            <apex:facet name="header">label</apex:facet>
+                        </apex:column>
+                        <apex:column value="{!field.content}">
+                            <apex:facet name="header">content</apex:facet>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Results" />
+                    <apex:pageBlockTable value="{!result.results}" var="item">
+                        <apex:column >
+                            <apex:facet name="header">Layout</apex:facet>
+                            <apex:commandLink action="{!addressLayout}" value="Layout">
+                            	<apex:param name="AddressId" assignTo="{!AddressId}" value="{!item.id}"/>
+                            </apex:commandLink>
+                        </apex:column>
+                        <apex:column value="{!item.id}">
+                            <apex:facet name="header">id</apex:facet>
+                        </apex:column>
+                        <apex:column value="{!item.text}">
+                            <apex:facet name="header">text</apex:facet>
+                        </apex:column>
+                        <apex:column value="{!item.grouped}">
+                            <apex:facet name="header">grouped</apex:facet>
+                        </apex:column>
+                        <apex:column value="{!item.url}">
+                            <apex:facet name="header">url</apex:facet>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Refine">
+            	<apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Id" />
+                    <apex:inputText value="{!AddressId}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Refinement" />
+                    <apex:inputText value="{!Refinement}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

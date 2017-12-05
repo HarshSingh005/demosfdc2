@@ -1,0 +1,548 @@
+<apex:page standardController="Account" extensions="ManageAccountContactsController" sidebar="false" action="{!Redirect}">
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" />
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" />
+    <apex:stylesheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/smoothness/jquery-ui.css" />
+    <apex:sectionHeader title="{!$ObjectType.Account.Label}" subtitle="{!Account.Name}" />
+    <style type="text/css">
+        input[type="text"],select,textarea {
+            padding: 0.25em;
+        }
+
+        .dateFormat {
+            display: none;
+        }
+
+        .contactBlockSection,.accountBlockSection {
+            width: 48%;
+            float: left;
+            padding: 0.25em;
+        }
+        .contactBlockSection1 {
+            width:inherit !important;
+        }
+        .contactBlockSection .labelCol,.accountBlockSection .labelCol,.contactBlockSection1 .labelCol {
+            min-width: 10em !important;
+            vertical-align: middle !important;
+        }
+
+        .contactBlockSection input[type="text"],.accountBlockSection input[type="text"],.contactBlockSection1 input[type="text"] {
+            width: 95%;
+        }
+
+        .contactBlockSection select,.accountBlockSection select,.contactBlockSection1 select {
+            width: 95%;
+        }
+
+        .contactBlockSection textarea,.accountBlockSection textarea,.contactBlockSection1 textarea {
+            width: 95%;
+            height: 3em;
+        }
+
+        tr.dataRow {
+          height: 3em !important;
+                width: 100%;
+        }
+
+        tr.dataRow.noborders td {
+            border: none !important;
+                width: 100%;        
+        }  
+
+        .ui-dialog .ui-state-error { padding: .3em; }
+        .validateTips { border: 1px solid transparent; padding: 0.3em; }
+    </style>
+    <script type="text/javascript">
+        function changeTypeDisplay() {
+        $(document).ready(function() {
+            $('.type').attr("disabled", "disabled");
+            $('.addressField').change(function() {
+                $('.type').attr("disabled", "disabled");
+                    $('.addressField').each(function() {
+                        if($(this).val().trim() != '') {
+                            $('.type').removeAttr("disabled");
+                        }
+                    });
+                    if ($('.type').is(':disabled'))
+                        $('.type').val('');
+            });
+            
+            $('.addressField').each(function() {
+                if($(this).val().trim() != '') {
+                    $('.type').removeAttr("disabled");
+                }
+            });
+
+           $(".addressLabel").each(function() {
+               var str = $(this).html();
+               if (str.match("^Original")) {
+                   str = str.substr(9);
+                   $(this).html(str);
+               }
+           });
+           
+           $('.rC_Bios__Preferred_Contact__c:first').attr("checked","checked");
+           
+           
+           $('.rC_Bios__Preferred_Contact__c').on('change',function(){
+               $('.rC_Bios__Preferred_Contact__c').not(this).prop('checked', false);
+               
+           });
+
+        });
+       }
+       
+       $(function() {
+           var name = $( "input[id$='accountname']" ),
+            allFields = $( [] ).add( name ),
+            tips = $( ".validateTips" );
+           var accountNameExists = false;
+           $('.saveButton').click(function() {
+               $( "input[id$='buttonName']" ).val("save");
+               showDialog("save");
+           });
+           
+           $('.saveCloseButton').click(function() {
+               $( "input[id$='buttonName']" ).val("saveClose");
+               showDialog("saveClose");
+           }); 
+           
+           $('.saveNewButton').click(function() {
+               $( "input[id$='buttonName']" ).val("saveNew");
+               showDialog("saveNew");
+           });
+           
+           
+        function showWarningMessageForConstituentType() {
+          var warningMessage = ' Do you still want to continue?';
+          var cntNullConstituentType = 0;
+          $(".constituentTypeParent").find("select").not(".categoryInput").each(function(index,obj) {
+              console.log('value=',$(obj).val());
+              if ($(obj).val() == '') {
+                  ++cntNullConstituentType;
+              }  
+          });
+          console.log('cntNullConstituentType ::' + cntNullConstituentType);
+          
+          if (cntNullConstituentType == 1) { 
+              return confirm('{!SINGLE_CONSTITUENT_WARNING_MESSAGE}' + warningMessage);
+          } else if (cntNullConstituentType > 1) {
+              return confirm('{!MULTIPLE_CONSTITUENT_WARNING_MESSAGE}' + warningMessage);
+          }
+           
+          return true;
+          //return false;//confirm('Are you sure you want to delete?');
+        }
+       
+           function showDialog(btName) {
+               if (!showWarningMessageForConstituentType()) {
+                  return false;
+               }
+               var contactCount = parseInt($('.NumberOfContacts').val());
+               var disableGenerateName = Boolean({!showAccountName});
+               var strAccountName = name.val();
+               if (contactCount == 0 && disableGenerateName && !accountNameExists) {
+                   $( "#dialog-form" ).dialog( "open" );
+                   $('#dialog-form').css('overflow', 'hidden');
+                   $('#dialog-form').resizable('disable');
+                   return false;
+               } 
+               else if ($( "input[id$='hiddenAccountname']" ).val().length == 0) {
+                   $( "input[id$='hiddenAccountname']" ).val($(".Name").val());
+                   if (btName == "saveNew") {
+                       saveAndNew();
+                   } else if(btName == "saveClose") {
+                       saveAndClose();
+                   } else if(btName == "save") {
+                       save();
+                   }
+               }
+               else {
+                   if (btName == "saveNew") {
+                       saveAndNew();
+                   } else if(btName == "saveClose") {
+                       saveAndClose();
+                   } else if(btName == "save") {
+                       save();
+                   }
+               }
+           }
+           
+           function checkLength( o,min, max ) {
+               if ( o.val().length > max || o.val().length < min ) {
+                   o.addClass( "ui-state-error" );
+                   updateTips( "Required Field : Account Name" );
+                   return false;
+               } else {
+                   accountNameExists = true;
+                   return true;
+               }
+           }
+           
+           function updateTips( t ) {
+               tips.text( t ).addClass( "ui-state-highlight" );
+               setTimeout(function() {
+               tips.removeClass( "ui-state-highlight", 1500 );
+               }, 500 );
+           }
+           
+           $( "#dialog-form" ).dialog({
+                 autoOpen: false,
+                 height: 180,
+                 width: 350,
+                 modal: true,
+                 draggable: false,
+                 buttons: {
+                      "Save": function() {
+                            var bValid = true;
+                            allFields.removeClass( "ui-state-error" );
+                            bValid = bValid && checkLength( name, 1, 80 );
+                            if ( bValid ) {
+                                $( "input[id$='hiddenAccountname']" ).val($(name).val());
+                                $( "input[id$='idGeneratedName']" ).val($(name).val());
+                                $( this ).dialog( "close" );
+                                
+                                if ($( "input[id$='buttonName']" ).val() == "saveNew") {
+                                    saveAndNew();
+                                } else if($( "input[id$='buttonName']" ).val() == "saveClose") {
+                                    saveAndClose();
+                                } else if($( "input[id$='buttonName']" ).val() == "save") {
+                                    save();
+                                }
+                            }     
+                      },
+                      
+                      Cancel: function() {
+                          $( this ).dialog( "close" );
+                      }
+                 },
+                 
+                 close: function() {
+                     allFields.val( "" ).removeClass( "ui-state-error" );
+                 }
+             });    
+       });
+       
+       
+        
+        $(document).ready(function() {
+            $(window).resize(function() {
+                if ($(window).width() >= 1000) {
+                    $('.accountBlockSection').css('width', '48%');
+                    $('.contactBlockSection').css('width', '48%');
+                    $('.contactBlockSection1').css('width', '98%');
+                } else {
+                    $('.accountBlockSection').css('width', '98%');
+                    $('.contactBlockSection').css('width', '98%');
+                    $('.contactBlockSection1').css('width', '98%');
+                }
+            });
+
+           /*$("tr td.labelCol").each(function() {
+               var str = $(this).html();
+               if (str.match("^Original")) {
+                   str = str.substr(9);
+                   $(this).html(str);
+               }
+           }); */  
+           
+           $(".addressLabel").each(function() {
+               var str = $(this).html();
+               if (str.match("^Original")) {
+                   str = str.substr(9);
+                   $(this).html(str);
+               }
+           });         
+            
+            $(window).resize();
+            changeTypeDisplay();
+        });
+        
+    </script>
+    <apex:actionstatus id="waitStatus">
+        <apex:facet name="start">
+            <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb; height:100%;opacity:0.65;width:100%;">
+                <div class="waitingHolder" style="top: 400px; width: 91px;">
+                    <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                    <span class="waitingDescription">Loading...</span>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    <apex:form id="form">
+      
+        <apex:pageMessages id="pgMsg" />
+        <!--  
+        <apex:pageBlock title="Account Entry" mode="Edit" rendered="{!(ISBLANK(Account.Id)) && NOT(isAccountDuplicate || isContactDuplicate)}">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save" StyleClass="saveButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="save" action="{!upsertContactsAndAccountSamePage}" />
+                
+                <apex:commandButton value="Save & Close" StyleClass="saveCloseButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="saveAndClose" action="{!upsertContactsAndAccountAndReturn}" />
+                
+                <apex:commandButton value="Save & New {!$ObjectType.Account.Label}" StyleClass="saveNewButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="saveAndNew" action="{!upsertContactsAndAccountAndNewAccount}" />
+                
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+
+            <div class="pbError">
+              <br/>{!errorMessage} <br/> <br/>
+            </div>
+        </apex:pageBlock>
+        <apex:pageBlock title="Duplicate Records" rendered="{!(isAccountDuplicate || isContactDuplicate)}">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save (Ignore Alert)" action="{!upsertContactsAndAccountSamePage_Dup}"/>
+                <apex:commandButton value="Save & Close (Ignore Alert)" action="{!upsertContactsAndAccountAndReturn_Dup}"/>
+                <apex:commandButton value="Save & New {!$ObjectType.Account.Label} (Ignore Alert)" action="{!upsertContactsAndAccountAndNewAccount_Dup}" />
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+
+            <div class="pbError">
+              {!duplicateRecordIDs.size} Possible Duplicate Record Found.
+              <br/>{!dupErrorMessage} <br/><br/>
+            </div>
+
+            <apex:pageblocktable value="{!dupAccounts}" var="da" id="pageBlockTableDupAcc" rendered="{!isAccountDuplicate}">
+              <apex:repeat var="objField" value="{!dupAccountFields}">
+                <apex:column Value="{!da[objField]}" rendered="{!objField!='Name'}"/>
+                <apex:column headerValue="{!$ObjectType.Account.fields['Name'].Label}" rendered="{!objField=='Name'}">
+                    <apex:outputLink id="AccountLink" value="/{!da['id']}" target="_blank">
+                      {!da['Name']}
+                    </apex:outputLink>
+                </apex:column>
+              </apex:repeat>
+            </apex:pageblocktable>
+
+            <apex:pageblocktable value="{!dupContacts}" var="dc" id="pageBlockTableDupCon" rendered="{!isContactDuplicate}">
+              <apex:repeat var="objField" value="{!dupContactFields}">
+                <apex:column Value="{!dc[objField]}" rendered="{!objField!='Name'}"/>
+                <apex:column headerValue="{!$ObjectType.Contact.fields['Name'].Label}" rendered="{!objField=='Name'}">
+                    <apex:outputLink id="ContactLink" value="/{!dc['id']}" target="_blank">
+                      {!dc['Name']}
+                    </apex:outputLink>
+                </apex:column>
+              </apex:repeat>
+            </apex:pageblocktable>
+        </apex:pageBlock>-->
+        
+        <!-- T-474751 | Ravi Chauhan | Changes > Start -->
+        
+        <apex:pageBlock title="Account Entry" mode="Edit" rendered="{!(ISBLANK(Account.Id)) && NOT(hasDuplicateResult)}">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save" StyleClass="saveButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="save" action="{!upsertContactsAndAccountSamePage}"/>
+                
+                <apex:commandButton value="Save & Close" StyleClass="saveCloseButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="saveAndClose" action="{!upsertContactsAndAccountAndReturn}" rerender="form" status="waitStatus"/>
+                
+                <apex:commandButton value="Save & New {!$ObjectType.Account.Label}" StyleClass="saveNewButton" rerender="pgMsg" disabled="{!isRecordTypeError}"/>
+                <apex:actionFunction name="saveAndNew" action="{!upsertContactsAndAccountAndNewAccount}" />
+                
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+            <!--
+            <div class="pbError" rendered="{NOT(hasDuplicateResult)}">
+              <br/>{!errorMessage} <br/> <br/>
+            </div>-->
+        </apex:pageBlock>
+        
+        <apex:pageBlock title="Duplicate Records" rendered="{!hasDuplicateResult}">
+            <!--<apex:pageMessages />-->
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Save (Ignore Alert)" action="{!upsertContactsAndAccountSamePage_Dup}"/>
+                <apex:commandButton value="Save & Close (Ignore Alert)" action="{!upsertContactsAndAccountAndReturn_Dup}"/>
+                <apex:commandButton value="Save & New {!$ObjectType.Account.Label} (Ignore Alert)" action="{!upsertContactsAndAccountAndNewAccount_Dup}" />
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockTable value="{!duplicateRecords}" var="item">
+                <apex:column >
+                    <apex:facet name="header">Name</apex:facet>
+                    <apex:outputLink value="/{!item['Id']}">{!item['Name']}</apex:outputLink>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Owner</apex:facet>
+                    <apex:outputField value="{!item['OwnerId']}"/>
+                </apex:column>
+                <apex:column >
+                    <apex:facet name="header">Last Modified Date</apex:facet>
+                    <apex:outputField value="{!item['LastModifiedDate']}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+        
+        <!-- T-474751 | Ravi Chauhan | Changes > End -->
+        <apex:pageBlock title="Contact Information" mode="Edit" id="Contacts">
+            <apex:pageBlockButtons location="top" rendered="{!(NOT(ISBLANK(Account.Id)) && NOT(isAccountDuplicate || isContactDuplicate))}">
+                <apex:commandButton value="Save" action="{!upsertContactsAndAccountSamePage}" disabled="{!isRecordTypeError}"/>
+                <apex:commandButton value="Save & Close" action="{!upsertContactsAndAccountAndReturn}" disabled="{!isRecordTypeError}"/>
+                <apex:commandButton value="Save & New {!$ObjectType.Account.Label}" action="{!upsertContactsAndAccountAndNewAccount}" disabled="{!isRecordTypeError}"/>
+                <apex:commandButton value="Cancel" action="{!cancel}" />
+            </apex:pageBlockButtons>
+
+            <apex:outputPanel style="display: none;">
+                <apex:pageBlockSection collapsible="false" title="Control Options" />
+            </apex:outputPanel>
+ 
+            <apex:actionRegion immediate="true">
+                <apex:pageBlockSection columns="2">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputText value=" Number of contacts to create" />
+                        <apex:outPutPanel >
+                            <apex:selectList styleClass="NumberOfContacts" id="contactToCreate" value="{!noOfContacts}" size="1" style="width: 45px;" onchange="ReRenderContact(this.value)">
+                                <!-- <apex:selectOption itemValue="0" itemLabel="0" /> -->
+                                <apex:selectOption itemValue="1" itemLabel="1" />
+                                <apex:selectOption itemValue="2" itemLabel="2" />
+                                <apex:selectOption itemValue="3" itemLabel="3" />
+                                <apex:selectOption itemValue="4" itemLabel="4" />
+                            </apex:selectList>                            
+                            
+                            <apex:actionFunction name="ReRenderContact" action="{!contactsToCreate}" oncomplete="return changeTypeDisplay();" rerender="Contacts" status="waitStatus" >
+                                <!-- Contacts -->
+                                <apex:param name="selectedValue" value="" />
+                            </apex:actionFunction>
+                            <!--
+                            <apex:actionStatus id="contactLoad">
+                                <apex:facet name="start">
+                                    <apex:image value="/img/loading.gif" style="vertical-align: middle;" />
+                                </apex:facet>
+                            </apex:actionStatus>-->
+                        </apex:outPutPanel>
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:pageBlockSectionItem rendered="{!NOT(isDisabledHideExistingContacts)}">
+                        <apex:outputLabel value="Hide existing Contacts?" for="isShowExistinContacts" />
+                        <apex:outPutPanel >
+                            <apex:inputcheckbox value="{!isHideExistingContacts}" id="isShowExistinContacts">
+                                <apex:actionSupport event="onchange" rerender="Contacts" status="waitStatus"/>
+                            </apex:inputcheckbox>
+                            <!--
+                            <apex:actionStatus id="contactshow">
+                                <apex:facet name="start">
+                                    <apex:image value="/img/loading.gif" style="vertical-align: middle;" />
+                                </apex:facet>
+                            </apex:actionStatus>-->
+                        </apex:outPutPanel>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:actionRegion>
+            
+            <apex:repeat var="contact" value="{!contactExistingList}" id="contactNewList" rendered="{!NOT(isHideExistingContacts)}">
+                <!-- Exists to avoid SOQL field missing errors -->
+                <apex:outputPanel rendered="{!ISBLANK(contact.AccountId)}" layout="none" />
+                <apex:outputPanel layout="block" styleClass="contactBlockSection">
+                    <apex:pageBlockSection title="Contact Information" columns="2" collapsible="false" rendered="{!Account.RecordTypeId == recordTypeIdHousehold}">
+                        <apex:repeat var="fieldName" value="{!$ObjectType.Contact.FieldSets.rC_Bios__Account_ManageContacts}">
+                            <apex:inputField value="{!contact[fieldName]}" styleClass="{!fieldName}" required="{!(contactRequiredFieldMap[fieldName] == true)}" />
+                            <!-- required="{!fieldName.dbrequired}"  -->
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Contact Information" columns="2" collapsible="false" rendered="{!Account.RecordTypeId == recordTypeIdOrganizational}">
+                        <apex:repeat var="fieldName" value="{!$ObjectType.Contact.FieldSets.Account_ManageContacts_OrganisationAccou}"><!-- I-248674 | Changed the correct field set-->
+                            <apex:inputField value="{!contact[fieldName]}" styleClass="{!fieldName}" required="{!(contactRequiredFieldMap[fieldName] == true)}" />
+                            <!-- required="{!fieldName.dbrequired} -->
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+            </apex:repeat>
+            
+            <apex:outputPanel layout="block" styleClass="contactBlockSection" rendered="{!OR(contactExistingList == null, contactExistingList.size == 0)}">
+                <apex:repeat var="contactHelper" value="{!contactHelperList}" id="contactNewList2">
+                    <apex:outputPanel layout="block" >
+                        <apex:pageBlockSection title="-- New Contact --" columns="2" collapsible="false">
+                             <apex:pageBlockSectionItem rendered="{!IF(isEnableConstituentTypes == true, true, false)}" > 
+                                <apex:outputLabel value="Constituent Type"></apex:outputLabel>
+                                <apex:outputPanel styleClass="constituentTypeParent">
+                                    <!-- <apex:inputField value="{!contactHelper.preference.rC_Bios__Subcategory__c}" html-categorytype="constituentType" styleClass="constituentType"></apex:inputField> -->
+                                    <apex:inputField value="{!contactHelper.preference.rC_Bios__Category__c}" styleClass="categoryInput" style="display: none;"></apex:inputField>
+                               </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:repeat var="fieldName" value="{!ContactFields}">
+                                <!-- value="{!$ObjectType.Contact.FieldSets.rC_Bios__Account_ManageContacts}" -->
+                                <apex:inputField value="{!contactHelper.contact[fieldName]}" rendered="{!NOT(fieldName == 'Lead__c')}" styleClass="{!fieldName}" required="{!(contactRequiredFieldMap[fieldName] == true)}" />
+                                <!-- Changes as per Issue I-243432 - Suminder Singh -->
+                                <apex:pageBlockSectionItem rendered="{!(fieldName == 'Lead__c')}"> 
+                                    <apex:outputLabel value="Lead"  for="leadchkbox"></apex:outputLabel>  
+                                    <apex:actionRegion rendered="{!(fieldName == 'Lead__c')}" id="leadchkbox">                                    
+                                        <apex:inputCheckBox value="{!isContactLead}" rendered="{!(fieldName == 'Lead__c')}" styleClass="{!fieldName}" required="{!(contactRequiredFieldMap[fieldName] == true)}">
+                                            <apex:actionSupport event="onchange" rerender="addressblock" status="waitStatus"/>  
+                                        </apex:inputCheckBox>                                    
+                                    </apex:actionRegion>
+                                </apex:pageBlockSectionItem>
+                            </apex:repeat>               
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+                </apex:repeat>
+            </apex:outputPanel>
+            
+            <apex:outputPanel layout="block" styleClass="contactBlockSection1" rendered="{!contactExistingList.size != 0 }"> 
+                <apex:repeat var="contactHelper" value="{!contactHelperList}" id="contactNewListWithExisting">
+                    <apex:outputPanel layout="block" styleClass="contactBlockSection" >
+                        <apex:pageBlockSection title="-- New Contact --" columns="2" collapsible="false">
+                            <apex:pageBlockSectionItem rendered="{!IF(isEnableConstituentTypes == true, true, false)}" > 
+                                <apex:outputLabel value="Constituent Type"></apex:outputLabel>
+                                <apex:outputPanel >
+                                    <apex:inputField value="{!contactHelper.preference.rC_Bios__Category__c}" styleClass="categoryInput" style="display: none;"></apex:inputField>
+                                    <!-- <apex:inputField value="{!contactHelper.preference.rC_Bios__Subcategory__c}" html-categorytype="constituentType" styleClass="constituentType"></apex:inputField> -->
+                               </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:repeat var="fieldName" value="{!ContactFields}">
+                                <!-- value="{!$ObjectType.Contact.FieldSets.rC_Bios__Account_ManageContacts}" -->
+                                <apex:inputField value="{!contactHelper.contact[fieldName]}" styleClass="{!fieldName}" required="{!(contactRequiredFieldMap[fieldName] == true)}" />
+                            </apex:repeat>                           
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+                </apex:repeat>
+            </apex:outputPanel>
+                
+            <apex:outputPanel rendered="{!(ISBLANK(Account.Id))}" styleClass="accountBlockSection">
+               <apex:outputPanel layout="block">
+                    <apex:pageBlockSection title="{!addressSectionName}" columns="2" collapsible="false">
+                       <!-- <apex:repeat var="field" value="{!$ObjectType.rC_Bios__Account_Address__c.Fieldsets.rC_Bios__Account_ManageContacts}">-->
+                        <apex:repeat var="field" value="{!$ObjectType.rC_Bios__Account_Address__c.Fieldsets.New_Account_ManageContacts}">
+        
+                        <apex:PageBlockSectionItem >
+                                <apex:outputText html-class="addressLabel" value="{!field.Label}" />
+                                <apex:inputField value="{!accountAddress[field]}" />
+                        </apex:PageBlockSectionItem>
+                        </apex:repeat>
+                    </apex:pageBlockSection>
+              <apex:outputPanel id="addressblock">
+              <apex:pageBlockSection collapsible="false" columns="1">
+              <!-- Changes as per Issue I-243432 - Suminder Singh -->
+                <c:AddressValidationComponent id="addressComponent" AddressToValidate="{!address}" required="true" controllers="{!AddressControllers}" WaitStatus="waitStatus"/>
+              </apex:pageBlockSection>
+              </apex:outputPanel>  
+                    
+                </apex:outputPanel>
+                
+                <apex:outputPanel layout="block">
+                    <apex:pageBlockSection title="Account Information" columns="1" collapsible="false">
+                        <apex:repeat var="fieldName" value="{!AccountFields}">
+                            <!-- value="{!$ObjectType.Account.FieldSets.Account_ManageContacts}" -->
+                            <apex:inputField value="{!acc[fieldName]}" styleClass="{!fieldName}" required="{!(accountRequiredFieldMap[fieldName] == true)}" rendered="{!IF(AND(showAccountName == true,fieldName == 'Name'),false,true)}" /> <!-- required="{!fieldName.dbrequired}" -->
+                            <apex:pageBlockSectionItem rendered="{!NOT(IF(AND(showAccountName == true,fieldName == 'Name'),false,true))}">
+                            <apex:outPutText value="" style="font-weight: bold" id="idGeneratedName" />
+                            </apex:pageBlockSectionItem>
+                        </apex:repeat>
+                        <!--<apex:pageBlockSectionItem>
+                            <apex:selectList id="AccountType" value="{!Account.Type}" size="1" required="false">
+                                <apex:selectOptions value="{!AccountTypes}"/>
+                            </apex:selectList>
+                        </apex:pageBlockSectionItem>-->
+                    </apex:pageBlockSection>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            
+        </apex:pageBlock>
+        
+        <div id="dialog-form" title="Account Name Information">
+            <p class="validateTips"></p>
+            <label for="name">Account Name</label>
+            <input type="text" name="name" id="accountname" class="text ui-widget-content ui-corner-all" />
+        </div>
+        <apex:inputHidden value="{!acc.Name}" id="hiddenAccountname" /><!-- rendered="{!NOT(IF(AND(showAccountName == true,fieldName == 'Name'),false,true))}" -->
+        <apex:inputHidden id="buttonName" />
+    </apex:form>
+</apex:page>

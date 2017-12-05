@@ -1,0 +1,22 @@
+<apex:page standardController="Project__c" extensions="ProjectControllerExt" title="Create Funding Opportunity">
+	
+	<apex:sectionHeader title="Opportunity Edit" subtitle="New Funding Opportunity" />
+	
+	<apex:form >
+		<apex:pageBlock >
+			<apex:pageMessages />
+			<apex:pageBlockButtons >
+				<apex:commandButton value="Save" action="{!save}" rendered="{!NOT(isError)}"/>
+				<apex:commandButton value="Cancel" action="{!Cancel}" />
+			</apex:pageBlockButtons>
+			<apex:pageBlockSection rendered="{!NOT(isError)}">
+				<apex:repeat value="{!$ObjectType.Opportunity.FieldSets.Funding_Opportunity}" var="fieldSetVar">
+					<apex:inputField value="{!oppModel.opp[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}"/>
+				</apex:repeat>
+				<apex:repeat value="{!$ObjectType.Funding__c.FieldSets.FundingInfo}" var="fieldSetVar">
+					<apex:inputField value="{!fundingModel.funding[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}"/>
+				</apex:repeat>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

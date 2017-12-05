@@ -1,0 +1,48 @@
+<apex:page controller="CorrespondenceReminderController">
+    <apex:form >
+       <apex:pageBlock title="Generate Correspondence Reminder MCS Records">
+           <apex:pageMessages id="messages" />
+           <apex:pageBlockButtons >
+               <apex:commandButton action="{!processReminders}" value="Confirm and Process" rendered="{!isProcessButtonRendered}"/>
+               <apex:commandButton action="{!returnToRecord}" value="Cancel" rendered="{!isProcessButtonRendered}"/>
+               <apex:commandButton action="{!returnToRecord}" value="Return to National Office" rendered="{!isReturnButtonRendered}"/>
+           </apex:pageBlockButtons>
+           
+           <apex:pageBlockSection >
+           		<apex:pageBlockSectionItem >
+               		<apex:outputLabel value="Select National Office:" />
+                    <apex:selectList multiselect="false" size="1" value="{!nationalOfficeId}">
+                        <apex:selectOptions value="{!nationalOffices}" />
+                    </apex:selectList>
+               </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+               		<apex:outputLabel value="Select Number of Months:"/>
+                    <apex:selectList multiselect="false" size="1" value="{!numberOfMonths}">
+                        <apex:selectOption itemValue="3" itemLabel="3"/>
+                        <apex:selectOption itemValue="4" itemLabel="4"/>
+                        <apex:selectOption itemValue="5" itemLabel="5"/>
+                        <apex:selectOption itemValue="6" itemLabel="6"/>
+                    </apex:selectList>
+               </apex:pageBlockSectionItem>
+           </apex:pageBlockSection>
+           
+           
+           <br/><br/>
+           
+           <apex:actionPoller enabled="{!isTimerEnabled}" status="actStatusId" interval="5" action="{!refreshJobInfo}" reRender="jobStatus,messages"/>
+           <apex:actionStatus id="actStatusId" >
+               <apex:facet name="start" >
+                   <img src="/img/loading.gif" />                    
+               </apex:facet>
+           </apex:actionStatus>
+           <apex:pageBlockTable id="jobStatus" title="Job Status" value="{!jobs}" var="job" rendered="{!isJobStatusRendered}">
+               <apex:column value="{!job.Id}"/>
+               <apex:column value="{!job.Status}"/>
+               <apex:column value="{!job.ExtendedStatus}"/>
+               <apex:column value="{!job.JobItemsProcessed}"/> 
+               <apex:column value="{!job.TotalJobItems}"/> 
+               <apex:column value="{!job.NumberOfErrors}"/> 
+           </apex:pageBlockTable>           
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

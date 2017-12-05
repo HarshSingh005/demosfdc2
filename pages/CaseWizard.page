@@ -1,0 +1,141 @@
+<apex:page standardController="Case" extensions="CaseControllerExt" action="{!init}" tabStyle="Case" title="Case Wizard">
+    <apex:sectionHeader title="Case Wizard" subtitle="Edit Case" />
+    <apex:stylesheet value="{!$Resource.Overlay}"/>
+    <apex:includeScript value="{!$Resource.SelectAllCheckBoxes}"/>
+    <apex:form >
+        <apex:actionFunction action="{!deleteRelatedCase}" name="deleteRelatedCase" rerender="casesSection" immediate="true">
+            <apex:param name="caseId" assignTo="{!caseIdtoDel}" value="" />
+        </apex:actionFunction>
+        <apex:actionFunction action="{!editRelatedCase}" name="editRelatedCase" rerender="casesSection" immediate="true">
+            <apex:param name="caseId" assignTo="{!caseIdtoEdit}" value="" />
+        </apex:actionFunction>
+        
+        <!-- Master Case page block  --> 
+        <c:MasterCaseInfo thisCon="{!thisCon}" relatedCasesSection="relatedCasesSection"/>
+		
+ 	
+	    <apex:outputPanel id="routedCaseSection">
+	    	<apex:actionRegion >    
+		        <apex:pageBlock >
+	        		<apex:pageMessage summary="{!thisCon.routedCasePageMessage}" severity="Error" strength="2" rendered="{!thisCon.routedCasePageMessage != null}" />
+	        		<c:StandardCaseInfo routedCase="{!thisCon.routedCase}" rendered="{!masterCase.caseRecord.Id != null}" />
+	        		<apex:pageBlockSection title="Routed Case Info" rendered="{!masterCase.caseRecord.Id == null}" columns="1">
+	        			<apex:pageMessage summary="To Add Related Cases create the Master Case first" severity="info" strength="3" />	
+	        		</apex:pageBlockSection>
+		       		<apex:pageBlockButtons location="bottom" rendered="{!masterCase.caseRecord.Id != null}">	
+		      			<apex:actionStatus id="savingRoutedCaseStatus">
+			                <apex:facet name="stop">
+			                    <apex:commandButton value="Save" action="{!saveRoutedCase}" status="savingRoutedCaseStatus" rerender="masterCaseSection, routedCaseSection, casesSection"/>
+			                </apex:facet>
+			                <apex:facet name="start">
+			                    <apex:commandButton value="Saving..." disabled="true" status="savingRoutedCaseStatus"/>
+			                </apex:facet>
+			            </apex:actionStatus>
+		       		</apex:pageBlockButtons>
+		    	</apex:pageBlock>
+	    	</apex:actionRegion>
+	    </apex:outputPanel>	
+
+        
+        <apex:pageBlock >
+            <apex:pageBlockSection title="Related Cases" columns="1" id="relatedCasesSection">
+                <apex:commandLink value="Add Case" action="{!addCase}" rerender="casesSection" rendered="{!masterCase.caseRecord.Id != null}" immediate="true"/>
+                <apex:pageMessage summary="To Add Related Cases create the Master Case first" severity="info" strength="3" rendered="{!masterCase.caseRecord.Id == null}"/>
+                <apex:outputPanel id="casesSection">
+                    <apex:pageBlockTable value="{!masterCase.relatedCases}" var="case" rendered="{!masterCase.relatedCases != null && masterCase.relatedCases.size > 0}">
+                        <apex:column width="50px;">
+                            <apex:outputLink value="javascript:void(0)" onclick="editRelatedCase('{!case.Id}')">Edit</apex:outputLink>
+                            <apex:outputText value="&nbsp;" escape="false"/>
+                            <apex:outputLink value="#" onclick="return deleteCase('{!case.Id}');">Del</apex:outputLink>
+                            
+                        </apex:column>
+                        <apex:column headerValue="{!$ObjectType.Case.Fields.CaseNumber.Label}">
+                            <apex:outputLink value="/{!case.Id}" target="_blank">
+                                {!case.CaseNumber}
+                            </apex:outputLink>
+                        </apex:column>
+                        <apex:column value="{!case.Status}" />
+                        <apex:column value="{!case.Subject}" />
+                        <apex:column value="{!case.OwnerId}" />
+                        <apex:column value="{!case.Target_Resolution_Time__c}" />
+                    </apex:pageBlockTable> 
+                    
+                    <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayOverlay}"/>
+                    <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayOverlay}">
+                        <apex:pageBlockSection title="Related Case Info" >
+                            <apex:pageBlockSectionItem rendered="{!isEditOp != true}">
+                                <apex:outputPanel >
+                                    <span class="vfHelpText">
+                                        <apex:outputLabel value="Record Type" for="recType"/>
+                                        <apex:outputLink value="javascript:return false;">
+                                            <img src="/s.gif" class="helpOrb" />
+                                            <span>
+                                                <apex:outputText value="{!$Label.RecType_Help}" escape="false"/>
+                                            </span>
+                                        </apex:outputLink>
+                                    </span>
+                                </apex:outputPanel>
+                                <apex:actionRegion >
+                                    <!-- Onchange of record type should bypass all validation rules. Rerender does not work with immediate = true. Action method does not get invoked. Work around is to use action region  -->
+                                    <apex:inputField value="{!relatedCase.Related_Case_Record_Type__c}" id="recType" >
+                                        <apex:actionSupport event="onchange" action="{!setRecordTypeAndRefresh}" rerender="relatedCaseFields" status="recTypeStatus" />
+                                        <apex:actionStatus id="recTypeStatus">
+                                            <apex:facet name="stop" /><apex:facet name="start"><img src="/img/loading.gif" alt="Loading graphic" /></apex:facet>
+                                        </apex:actionStatus>
+                                    </apex:inputField>  
+                                </apex:actionRegion>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!isEditOp == true}">
+                                <apex:outputLabel value="Record type" for="recType"/>
+                                <apex:outputField value="{!relatedCase.Related_Case_Record_Type__c}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Master Case Description" />
+                                <apex:inputTextArea value="{!thisCon.masterCase.caseRecord.Description}" disabled="true" style="width:250px; height:75px"/>
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                        
+                        <apex:outputPanel id="relatedCaseFields">
+                            <apex:pageMessage summary="{!relatedCaseError}" severity="error" strength="3" rendered="{!relatedCaseError != null}" />
+                            
+                            <apex:actionRegion >
+                            <!-- <c:SimpleCaseInfo simpleCase="{!thisCon.relatedCase}" rendered="{!relatedCase.Related_Case_Record_Type__c == '1 - Simple Case'}"/>  -->
+                            <c:StandardCaseInfo routedCase="{!thisCon.relatedCase}" rendered="{!relatedCase.Related_Case_Record_Type__c == '2 - Routed Case'}"/>
+                            <c:NationalOfficeCaseInfo thisCon="{!thisCon}" rendered="{!relatedCase.Related_Case_Record_Type__c == '3 - National Office Project Request'}"/>
+                            <c:ChildInquiryCaseInfo thisCon="{!thisCon}" rendered="{!relatedCase.Related_Case_Record_Type__c == '4 - National Office Participant Request'}"/>
+                            <apex:outputPanel >
+                                <div style="text-align:center">
+                                    <apex:actionStatus id="savingRelatedCaseStatus">
+                                        <apex:facet name="stop">
+                                            <apex:commandButton value="Save" action="{!SaveRelatedCase}" status="savingRelatedCaseStatus" rerender="casesSection, masterCaseSection"/>
+                                        </apex:facet>
+                                        <apex:facet name="start">
+                                            <apex:commandButton value="Saving..." disabled="true" status="savingRelatedCaseStatus"/>
+                                        </apex:facet>
+                                    </apex:actionStatus>
+                                    <apex:commandButton value="Cancel" action="{!closeOverlay}" rerender="casesSection" immediate="true"/>
+                                </div>
+                            </apex:outputPanel>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:pageBlockSection>        
+        </apex:pageBlock>
+    </apex:form>
+    <style>
+          .datePicker {
+            z-index: 9999;/*Changed this css property which was 100 prior*/
+            position: absolute;
+            display: none;
+            top: 0;
+            left: 0;
+            width: 17em;
+            background-color: #b7c6b2;
+            border-bottom: 1px solid #000;
+            border-right: 1px solid #000;
+            margin: 0;
+            padding: 1px 1px 2px 2px;
+        }
+    </style>
+</apex:page>

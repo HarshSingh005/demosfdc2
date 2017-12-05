@@ -1,0 +1,44 @@
+<apex:page standardController="Opportunity" extensions="AddProjectsToOpportunityControllerExt" title="Add Projects to Opportunity">
+	<apex:sectionHeader title="Project Marketplace" subtitle="Search Projects" />
+	<apex:form >
+		<apex:includeScript value="{!$Resource.SelectAllCheckBoxes}"/>
+				 	
+		<apex:pageBlock id="pbSearchSection">
+			<apex:pageMessages />
+			<c:CustomSearch thisCon="{!thisCon}" sObjName="Project__c" searchResultSection="projectSection" pbSection="pbSearchSection" />
+		</apex:pageBlock>
+		
+		<apex:pageBlock title="Search Results">
+			<apex:pageMessages />
+			<apex:pageBlockButtons >
+				<apex:commandButton value="Add Projects to Opportunity" action="{!addSelectedProjectsToOpp}" />
+				<apex:commandButton value="Create New Project" action="{!createProject}" />
+				<apex:commandButton value="Cancel" action="{!Cancel}" />
+			</apex:pageBlockButtons>
+			
+			<apex:pageBlockSection columns="1" title="Projects" id="projectSection">
+				<apex:pageMessage summary="Your search did not match any projects. Try more general filters." severity="info" strength="3" rendered="{!projectWrapper.size < 1}"/>
+				<apex:pageBlockTable value="{!projectWrapper}" var="projWrapper" rendered="{!projectWrapper.size > 0}">
+					<apex:column >
+						<apex:facet name="header"> 
+							<apex:inputCheckbox value="{!isAllSelected}" onclick="checkAll(this)"/>
+						</apex:facet>
+						<apex:inputCheckBox value="{!projWrapper.isSelected}" id="checkedone"/>
+					</apex:column>
+					<apex:column headerValue="{!$ObjectType.Project__c.Fields.Name.Label}">
+						<apex:outputLink value="/{!projWrapper.project.Id}" target="_blank">
+                			{!projWrapper.project.Name}
+             			</apex:outputLink>
+					</apex:column>
+					<apex:column value="{!projWrapper.project.Status__c}" />
+					<apex:column value="{!projWrapper.project.Country__c}" />
+				</apex:pageBlockTable>
+				<apex:outputPanel >
+					<apex:commandLink value="Next" action="{!next}" reRender="projectSection" rendered="{!hasNext}"/>
+					<apex:outputText value="&nbsp; &nbsp;" escape="false" />
+					<apex:commandLink value="Previous" action="{!Previous}" reRender="projectSection" rendered="{!hasPrevious}"/>
+				</apex:outputPanel>	
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

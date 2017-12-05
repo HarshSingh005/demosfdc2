@@ -1,0 +1,3 @@
+<apex:page controller="CustomLookupController" sidebar="false" showHeader="false" title="Lookup Page" action="{!redirectToLookupPage}"> 
+ 	
+</apex:page>

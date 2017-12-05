@@ -1,0 +1,80 @@
+<apex:page standardController="Contact" extensions="DepartChildController">
+	<script type="text/javascript">
+		function validate() {
+			var isDedicated = {!isDedicated};
+			if(isDedicated) {
+				var res = confirm('Please ensure a Substitute Contact is identified on the Sponsorship record from this Participant’s Community to ensure the donor receives a replacement from the same dedicated community.');
+				if(!res) {
+					window.location='/'+'{!contactID}';
+					return false;
+				}
+			} 
+			lockScreen(true, 'Departing Child..');
+			afDepartChild();
+			return false;
+		}
+	</script>
+    <apex:form id="form">
+        <apex:pageMessages id="pgMsg"/>
+        <c:WaitingComponent />
+        <apex:pageBlock title="Departed Child Details" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:commandbutton value="Depart Child" onclick="return validate();" />
+                <apex:actionfunction id="afDepartChild" name="afDepartChild" action="{!departChild}" 
+                	rerender="pgMsg" oncomplete="lockScreen(false, '');">
+        		</apex:actionfunction>
+                <apex:commandButton action="{!cancel}" value="Cancel" immediate="true"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection columns="1">
+                
+                <!--
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Departer Name"/>
+            		<apex:inputField value="{!conObj.Departer_ID_Name__c}" label="Departer Name" required="true"/>
+                </apex:pageBlockSectionItem>
+                -->
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Departure Reason"/>
+            		<apex:inputField value="{!conObj.Departure_Reason__c}" required="true"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Departure Reason Detail"/>
+            		<apex:inputField value="{!conObj.Departure_Reason_Detail__c}" required="true"/>
+                </apex:pageBlockSectionItem>
+                
+                <!-- Added below 6 fields for task update T-479210 -->
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Name"/>
+            		<apex:outputField value="{!conObj.Name}" />
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Child Number"/>
+            		<apex:outputField value="{!conObj.Child_Number__c}" />
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Gender"/>
+            		<apex:outputField value="{!conObj.rC_Bios__Gender__c}" />
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Community"/>
+            		<apex:outputField value="{!conObj.Community__c}" />
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Local Partner"/>
+            		<apex:outputField value="{!conObj.Local_Partner__c}" />
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="National Office"/>
+            		<apex:outputField value="{!conObj.National_Office__c}" />
+                </apex:pageBlockSectionItem>
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

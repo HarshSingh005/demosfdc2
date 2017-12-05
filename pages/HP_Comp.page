@@ -1,0 +1,22 @@
+<apex:page >
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript">
+        function hideSidebarLinks() {
+            alert('hi');
+            alert(document.getElementById('sidebarDiv').value);
+            $j = jQuery.noConflict();
+            alert($j('#sidebarDiv').innerHTML());
+            alert($j(document).parent().parent().innerHTML());
+            $j(document).parent().parent().find('a').each(function(){
+                alert(this.text());
+            });
+            alert('end');
+        }
+        
+        if (window.addEventListener) {
+            window.addEventListener("load", hideSidebarLinks, false);
+        } else if (window.attachEvent) {
+            window.attachEvent("onload", hideSidebarLinks);
+        }
+    </script>
+</apex:page>

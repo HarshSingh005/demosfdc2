@@ -1,0 +1,23 @@
+<apex:page >
+<apex:includeScript value="/support/console/25.0/integration.js"/>
+<script type="text/javascript">
+
+(function () {
+    sforce.console.getEnclosingPrimaryTabId(function (result) {
+        var subdomain = '{!URLFOR(JSENCODE($Action.Account.Tab), JSENCODE($ObjectType.Account), null, true)}';
+        subdomain = subdomain.substring(0, subdomain.indexOf(".salesforce.com"));
+        
+        var WalkMeLoader = subdomain + ".salesforce.com/resource/WalkMe_Top";
+        
+        // Creates the hidden iframe that will inject the walkme snippet to the top window salesforce.com
+        var iframe = document.createElement('iframe');
+        iframe.src = WalkMeLoader;
+        iframe.name = 'WalkMeTopLoader';
+        iframe.style.cssText= 'display: none;';
+        document.getElementsByTagName('body')[0].appendChild(iframe);
+    });
+})();
+
+
+</script>
+</apex:page>

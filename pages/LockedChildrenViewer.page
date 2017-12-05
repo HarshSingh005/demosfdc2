@@ -1,0 +1,47 @@
+<apex:page controller="LockedChildrenViewerController">
+	<apex:form >
+        <apex:pageBlock title="Locked Children Viewer">
+            <apex:pageBlockButtons id="buttons" >
+                <apex:commandButton value="Unlock Selected Children" action="{!UnlockChildren}" status="actStatusId" reRender="childlist,messages"/>
+            </apex:pageBlockButtons>
+            <apex:pageMessages id="messages" />
+            <apex:actionStatus for="region" id="actStatusId" >
+                <apex:facet name="start" >
+                  <img src="/img/loading.gif" />                    
+                </apex:facet>
+            </apex:actionStatus>
+            <apex:actionRegion id="region">
+                <apex:pageBlockTable value="{!Children}" var="child" id="childlist">
+                    <apex:column >
+                        <apex:facet name="header">Select</apex:facet>
+                        <apex:inputCheckbox value="{!child.Selected}" />
+                    </apex:column>
+                    <apex:column value="{!child.Child.National_Office_Number__c}">
+                        <apex:facet name="header">NO ID</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.Child_Number__c}">
+                        <apex:facet name="header">Child Number</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.Name}">
+                        <apex:facet name="header">Name</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.Short_Name__c}">
+                        <apex:facet name="header">Short Name</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.rC_Bios__Gender__c}">
+                        <apex:facet name="header">Gender</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.rC_Bios__Age__c}">
+                        <apex:facet name="header">Age</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.Birthdate}">
+                        <apex:facet name="header">Birthdate</apex:facet>
+                    </apex:column>
+                    <apex:column value="{!child.Child.National_Office__r.NO_Country__c}">
+                        <apex:facet name="header">Country</apex:facet>
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:actionRegion>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

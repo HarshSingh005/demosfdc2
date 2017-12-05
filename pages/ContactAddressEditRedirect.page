@@ -1,0 +1,2 @@
+<apex:page standardController="rC_Bios__Contact_Address__c" extensions="ContactAddressEditRedirectController" recordSetVar="contactAddressSet" action="{!Redirect}" >
+</apex:page>

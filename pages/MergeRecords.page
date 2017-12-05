@@ -1,0 +1,343 @@
+<apex:page controller="MergeRecordsController" id="thePage">
+    
+    <apex:includeScript value="{!URLFOR($Resource.UIJQuery1822, 'js/jquery-1.7.2.min.js')}"/>
+    <style>
+
+        .selectedField
+        {
+            background-color: #CFEEF8 !important;
+            border:dotted #1797C0 1px  !important;
+            box-sizing:border-box;
+           -moz-box-sizing:border-box;
+           -webkit-box-sizing:border-box;
+        }
+        .oddMerge { 
+                background-color: #F0F0F0 !important; 
+                }
+        .evenMerge{ }
+        
+        .notWritable
+        {
+            color: #999999 !important;
+            font-style: italic !important;
+            background-color: #DDDDDD !important;
+            height:25px !important; 
+            margin: 5px !important; 
+            width:250px !important;
+        }
+        .writable
+        {
+            height:30px !important; 
+            margin: 5px !important; 
+            width:250px !important;
+        }
+    </style> 
+    
+    <script>
+        jQuery.noConflict();
+        
+        //jQuery ID escape
+        function esc(myid) {
+           return '#' + myid.replace(/(:|\.)/g,'\\\\$1');
+        }
+        //master object id input component
+        var masterRecordInputId = null;
+        //field columns ID
+        var fields = new Array();
+        //input fields id
+        var fieldsInput = new Array();
+        //"master" image ID
+        var masterImage = new Array();
+        //"set as master" image ID
+        var setMasterImage = new Array();
+        var masterText = new Array();
+        
+        //select the selected object and deselect the others
+        function selectMaster(index)
+        {console.log(index);
+            if(index == null || index == '') return;
+            jQuery(masterRecordInputId).val(index);
+            for(var id in fields)
+            {
+                if(id == index)
+                {
+                    jQuery(masterImage[id]).show();
+                    jQuery(setMasterImage[id]).hide();
+                    jQuery(masterText[id]).show();
+                }
+                else
+                {
+                    jQuery(masterImage[id]).hide();
+                    jQuery(setMasterImage[id]).show();
+                    jQuery(masterText[id]).hide();
+                }
+                
+                for(var fname in fields[index])
+                {
+                    if(id == index)
+                    {
+                        jQuery(fields[id][fname]).addClass('selectedField');
+                        jQuery(fieldsInput[id][fname]).val('true');
+                    }
+                    else
+                    {
+                        jQuery(fields[id][fname]).removeClass('selectedField');
+                        jQuery(fieldsInput[id][fname]).val('false');
+                    }
+                }
+            }
+            
+        }
+        
+        //select a single field (and deselect the others)
+        function selectSingleField(index, name)
+        {
+            if(index == null || index == '') return;
+            for(var id in fields)
+            {
+                if(id == index)
+                {
+                    jQuery(fields[id][name]).addClass('selectedField');
+                    jQuery(fieldsInput[id][name]).val('true');
+                }
+                else
+                {
+                    jQuery(fields[id][name]).removeClass('selectedField');
+                    jQuery(fieldsInput[id][name]).val('false');
+                }
+            }
+        }
+    </script>
+   
+    <apex:sectionHeader id="secHead" title="Merge {!IF(isForSingleObject, objLabel, 'records')}"/>
+    
+    <apex:form id="theForm">
+            <apex:outputPanel id="errMsgsTop">
+                    <apex:PageMessages />
+        </apex:outputPanel>
+        
+        <apex:actionFunction name="selectMergeAction" action="{!selectMergetObject}" rerender="srcResultPanel,mergePanel,errMsgsBottom,errMsgsTop,srcPagPanel" status="status" oncomplete="setObjName()">
+            <apex:param name="selectMergetObjectPosition" assignTo="{!selectMergetObjectPosition}" value=""/>
+            <apex:param name="selectMergetObjectId" assignTo="{!selectMergetObjectId}" value=""/>
+        </apex:actionFunction>
+        
+        <apex:pageblock id="pbMain" rendered="{!NOT(isForSingleObject)}">
+            <apex:pageBlockSection id="pbsObj" title="Choose an object"  columns="1">
+                <apex:pageBlockSectionItem id="pbsiSObj">
+                    <apex:outputLabel value="Select:"/>
+                    <apex:selectList id="sobjSlct" value="{!sObjectType}" size="1">
+                        <apex:selectOptions value="{!sobjectsSlctOpt}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem> 
+                <apex:pageBlockSectionItem id="pbsiSearchText">
+                    <apex:outputLabel value="Search:"/>
+                    <apex:inputText id="searchtxt" value="{!searchText}"/>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem id="pbsiBtnSearch">
+                    <apex:actionStatus id="pbsiSearchText">
+                        <apex:facet name="start">
+                            <apex:outputPanel >
+                                <img width="16" src="/img/loading32.gif"/> Searching records...
+                            </apex:outputPanel>
+                        </apex:facet>
+                        <apex:facet name="stop">
+                            <apex:outputPanel >
+                                <apex:commandButton action="{!searchRecords}" value="Search..." rerender="srcResultPanel,mergePanel,errMsgsBottom,errMsgsTop,myPanel,myButtons,fieldsPanel,pbsSearchRes" status="pbsiSearchText">
+                                <apex:param name="firstParam" assignto="{!selectedPage}" value="0"></apex:param>
+                               </apex:commandButton>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            </apex:pageBlock>
+               <apex:pageBlock >     
+                 <apex:pageBlockSection id="pbsSearchRes" title="Search Results" columns="1">
+                     
+                     <!--   Feb 16,2016 
+                            Task : T-474754 
+                            Purpose : Adding simplified Pagination Logic
+                            Developer : Vaibhav Goel
+                     -->  
+                     <apex:outputPanel id="srcPagPanel"  rendered="{!IF(cont != null, true, false)}">
+                         <apex:panelGrid columns="4" id="buttonsPanelGrid" style="text-align:center !important; padding-left:43%" rendered="{!IF(foundRecordList.size > 0 ,true,false)}">
+                            <apex:commandLink action="{!first}" rendered="{!IF(cont != null, true, false)}" reRender="buttonsPanelGrid, srcResultPanel" status="selectedMergeStatus">First</apex:commandlink>
+                            <apex:commandLink action="{!previous}" rendered="{!cont.hasPrevious}" reRender="buttonsPanelGrid, srcResultPanel" status="selectedMergeStatus">Previous</apex:commandlink>
+                            <apex:commandLink action="{!next}" rendered="{!cont.hasNext}" reRender="buttonsPanelGrid, srcResultPanel" status="selectedMergeStatus">Next</apex:commandlink>
+                            <apex:commandLink action="{!last}" rendered="{!IF(cont != null, true, false)}" reRender="buttonsPanelGrid, srcResultPanel" status="selectedMergeStatus">Last</apex:commandlink>
+                        </apex:panelGrid>
+                     </apex:outputPanel>
+                   <apex:pageBlockSectionItem id="pbsiSearchResults">                    
+                    <!-- when the user selectes a merged record, the search panel is hidden -->
+                     <apex:actionStatus id="selectedMergeStatus">                                            
+                       <apex:facet name="start">
+                         <apex:outputPanel >
+                            <img width="16" src="/img/loading32.gif"/> Selecting merging record...
+                         </apex:outputPanel>
+                       </apex:facet>                   
+                       <apex:facet name="stop">
+                            <p />
+                                                         <!-- Search content -->                      
+                      
+                       <apex:outputPanel id="srcResultPanel"  rendered="{!IF(cont != null, true, false)}">
+                          <apex:pageBlockTable value="{!foundRecordList}" var="sobj" rendered="{!IF(foundRecordList.size > 0 ,true,false)}"> 
+                             <apex:column >
+                                <apex:facet name="header">&nbsp;</apex:facet>                   
+                                   <apex:outputPanel >
+                                      <apex:variable var="index" value="{!1}"/>
+                                         <apex:repeat value="{!merginObjects}" var="tmp">
+                                            <apex:commandButton value="{!TEXT(index)}" onclick="selectMergeAction('{!TEXT(index-1)}', '{!sobj['Id']}'); return false;" />
+                                      <apex:variable var="index" value="{!index+1}"/>
+                                         </apex:repeat>
+                                   </apex:outputPanel>
+                             </apex:column>
+                                        
+                             <apex:column >
+                                <apex:facet name="header">{!describe.nameFieldLabel}</apex:facet>
+                                <apex:outputLink value="/{!sobj['Id']}" target="_blank">
+                                    {!sobj[describe.nameField]}
+                                </apex:outputLink>
+                            </apex:column>
+				           
+				           
+				           <apex:repeat value="{!$ObjectType.Account.FieldSets.custom_merge_search_result}"  var="field" rendered="{!IF((sObjectType == 'Account' && foundRecordList !=null), true,false)}"> <!-- rendered="{!IF(foundRecordList !=null,true,false)}" -->
+                               <apex:column rendered="{!IF((sObjectType == 'Account' && foundRecordList !=null) ,true,false)}">
+                                    <apex:facet name="header">{!field.Label}</apex:facet>
+                                    <apex:outputField value="{!sobj[field]}"/>
+                               </apex:column> 				             
+				           </apex:repeat> 
+				           
+				           
+				           <apex:repeat value="{!$ObjectType.Contact.FieldSets.Contact_Merge_Record_Search_Results}"  var="field" rendered="{!IF((sObjectType == 'Contact' && foundRecordList !=null) ,true,false)}">
+                               <apex:column rendered="{!IF((sObjectType == 'Contact' && foundRecordList !=null) ,true,false)}">
+                                    <apex:facet name="header">{!field.Label}</apex:facet>
+                                    <apex:outputField value="{!sobj[field]}"/>
+                               </apex:column> 				             
+				           </apex:repeat>  
+                                </apex:pageBlockTable>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    </apex:actionStatus>        
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <!-- MERGE SECTION -->
+ 
+            <apex:pageBlockSection id="pbsMerge" title="Merge records"  columns="1">
+                <apex:outputPanel id="mergePanel" style="text-align:center !important;">
+                    <div style="text-align:center !important;">
+                      <br />
+                       <apex:commandButton action="{!mergeRecords}" value="MERGE!" rerender="errMsgsTop,errMsgsBottom" rendered="{!merginObjects.size>1}" status="status"/>
+                        <br/><br/>
+                        <script>
+                            masterRecordInputId = esc('{!$Component.masterRecord}');
+                        </script>
+                        <apex:inputHidden id="masterRecord" value="{!masterObjectId}" /> 
+                        
+                        <!-- index used to set the column label [e.g. "Account 1"] -->
+                        <apex:variable var="cIndex" value="{!0}"/>
+                        
+                        <!-- dataTable based on all the fields for the object -->
+                        <apex:dataTable value="{!describe.allFieldsKeySet}" var="fname" rendered="{!merginObjects.size>0}" rowClasses="oddMerge,evenMerge" rules="cols">
+                                
+                                <!-- field's API name and label -->
+                                <apex:column styleClass="{!IF(describe.allFields[fname].isWritable,'writable','notWritable')}">
+                                    <apex:facet name="header">&nbsp;</apex:facet>
+                                    <apex:outputLabel value="{!fname}" title="{!describe.allFields[fname].label}"/>
+                                </apex:column>
+                            
+                            <!-- iteration through all the [MaxRecordsCount] objects -->
+                            <apex:repeat value="{!merginObjects}" var="obj">
+                            
+                                <!-- by clicking a cell, the field is selected and the other are deselected: if the field is not writable, it should not be selected-->
+                                <apex:column id="column" onclick="if('{!describe.allFields[fname].isWritable}'=='false') return false; selectSingleField('{!obj['Id']}','{!fname}');"
+                                            styleClass="{!IF(describe.allFields[fname].isWritable,'writable','notWritable')}">
+                                    
+                                    <!-- object header (button to make the object master) -->
+                                    <apex:facet name="header"> 
+                                        <apex:outputPanel style="text-align:center !important;">
+                                            <apex:variable var="cIndex" value="{!IF(cIndex=MaxRecordsCount,0,cIndex+1)}"/>
+                                           <!-- <p style="text-align:center !important;" id="col{!TEXT(cIndex)}">{!sObjectType} {!TEXT(cIndex)} </p> -->
+                                            <p style="text-align:center !important;" id="col{!TEXT(cIndex)}">{!obj['Name']}</p>
+                                            <br/>
+                                        <apex:outputLink id="state" rendered="{!ISBLANK(obj['Id'])=false}" onclick="selectMaster('{!obj['Id']}'); return false;" >
+                                            <apex:outputText id="imageSetMaster" title="Set as Survivor record" style="text-align:centre !important;display:{!IF(masterObjectId=obj['Id'],'none','block')};" value="Select Survivor"/>
+                                            <apex:outputText id="masterText" title="Survivor" style="text-align:left !important;display:{!IF(masterObjectId=obj['Id'],'block','none')};"  value="Survivor" /> 
+                                            <apex:image id="imageMaster" value="/img/msg_icons/confirm24.png" title="Master record"  style="text-align:left !important;display:{!IF(masterObjectId=obj['Id'],'block','none')};"/>
+                                            </apex:outputLink>
+                                            <script>
+                                                //saves id of the images
+                                                if("{!obj['Id']}" != '')
+                                                {   masterText["{!obj['Id']}"] = (esc('{!$Component.masterText}'));
+                                                    masterImage["{!obj['Id']}"] = (esc('{!$Component.imageMaster}'));
+                                                    setMasterImage["{!obj['Id']}"] = (esc('{!$Component.imageSetMaster}'));
+                                                }
+                                            </script>
+                                        </apex:outputPanel>
+                                        
+                                    </apex:facet>
+                                    
+                                    <apex:outputPanel >
+                                        
+                                        <!-- this input field is needed to know which field is choosen and of what object -->
+                                        <apex:inputHidden rendered="{!describe.allFields[fname].isWritable && ISBLANK(obj['Id'])==false && ISNULL(selectedObjFields[obj['Id']])==false}" 
+                                                        value="{!selectedObjFields[obj['Id']][fname].isChecked}"
+                                                        id="selectedField"/>
+                                                        
+                                        <script>
+                                            if("{!obj['Id']}" != "")
+                                            {
+                                                //handles massive click (array of component ID based on object Id and field name)
+                                                if(fields["{!obj['Id']}"]==null)
+                                                { 
+                                                    fields["{!obj['Id']}"] = new Array();
+                                                    fieldsInput["{!obj['Id']}"] = new Array();
+                                                }
+                                                //if the field is not writable, it should not be selected
+                                                if('{!describe.allFields[fname].isWritable}'=='true')
+                                                {
+                                                    fields["{!obj['Id']}"]['{!fname}'] = (esc('{!$Component.column}'));
+                                                    fieldsInput["{!obj['Id']}"]['{!fname}'] = (esc('{!$Component.selectedField}'));
+                                                }
+                                                //if selected, change the style class
+                                                if("true"== jQuery(fieldsInput["{!obj['Id']}"]['{!fname}']).val()) selectSingleField('{!obj['Id']}','{!fname}');
+                                            }
+                                        </script>
+                                        
+                                        <apex:outputField value="{!obj[fname]}" rendered="{!obj[fname]!=null}"/>
+                                        
+                                        
+                                    </apex:outputPanel>
+                                </apex:column>
+                                
+                            </apex:repeat>
+                            
+                        </apex:dataTable>
+                    </div>
+                </apex:outputPanel>
+                
+            </apex:pageBlockSection>
+         </apex:pageblock>
+                <apex:outputPanel id="errMsgsBottom">
+                    <apex:PageMessages />
+        </apex:outputPanel>
+    </apex:form>
+    <apex:actionstatus id="status">
+        <apex:facet name="start">
+          <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+               height: 100%;opacity:0.65;width:100%;filter: alpha(opacity=65);"> 
+            <div class="waitingHolder" style="top: 74.2px; width: 91px;">
+              <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+              <span class="waitingDescription">Please Wait...</span>
+            </div>
+          </div>
+        </apex:facet>
+    </apex:actionstatus>
+    <script type="text/javascript">
+        //selectMergeAction(0, '{!objId}');
+        function setObjName(){
+        	//alert({!sObjectName});
+        }
+    </script>
+</apex:page>

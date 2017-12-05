@@ -1,0 +1,27 @@
+<apex:component >
+	
+	<apex:attribute name="thisCon" description="The Visualforce page Controller" type="CaseControllerExt" required="true" />
+	
+	<apex:pageBlockSection title="Related Case Info" >
+		<apex:repeat value="{!$ObjectType.Case.FieldSets.Simple_Case}" var="fieldSetVar">
+			<apex:pageBlockSectionItem >
+				<apex:outputPanel >
+					<apex:outputLabel value="{!$ObjectType.Case.fields[fieldSetVar].Label}" />
+					<span class="vfHelpText">
+		            	<apex:outputLink value="javascript:return false;" rendered="{!$ObjectType.Case.fields[fieldSetVar].InlineHelpText != null}">
+			            	<img src="/s.gif" class="helpOrb" />
+			            	<span>
+			            		<apex:outputText value="{!$ObjectType.Case.fields[fieldSetVar].InlineHelpText}" escape="false"/>
+			            	</span>
+		            	</apex:outputLink>
+		            </span>
+				</apex:outputPanel>
+				<apex:outputPanel >
+					<apex:inputField value="{!thisCon.relatedCase[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}" rendered="{!fieldSetVar.Type != 'textarea'}"/>
+					<apex:inputField value="{!thisCon.relatedCase[fieldSetVar]}" required="{!OR(fieldSetVar.required, fieldSetVar.dbrequired)}" rendered="{!fieldSetVar.Type == 'textarea'}" style="width:250px; height:75px"/>
+				</apex:outputPanel>
+			</apex:pageBlockSectionItem>
+		</apex:repeat>
+	</apex:pageBlockSection>
+	
+</apex:component>

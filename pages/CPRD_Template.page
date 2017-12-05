@@ -1,0 +1,304 @@
+<apex:page >
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"/>
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"/>
+    <apex:includeScript value="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"/>
+    <apex:includeScript value="https://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.1/jquery.qtip.min.js"/>
+
+    <apex:stylesheet value="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css"/>
+    <apex:stylesheet value="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"/>
+    <apex:stylesheet value="https://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.1/jquery.qtip.min.css"/>
+
+    <style type="text/css">
+        .oRight a{
+            color: #0099FF;
+        }
+        .oRight a.disabled{
+            color: #ddd;
+        }
+        .oRight a.disabled:hover{
+            text-decoration: none;
+        }
+        .text-center{
+            text-align: center !important;
+        }
+        .text-left{
+            text-align: left !important;
+        }
+        .text-right{
+            text-align: right !important;
+        }
+        .text-bold{
+            font-weight: bold;
+        }
+        .unknown{
+            opacity: 0.3;
+        }
+        .unknown:after{
+            content: 'Unknown';
+        }
+        .fa-left:before{
+            margin-right:5px;
+        }
+        .fa-right:before{
+            margin-left:5px;
+        }
+        .text-success{
+            color: #00CC00;
+        }
+        .text-danger{
+            color: red;
+        }
+        .hidden{
+            display: none;
+        }
+        .invisible{
+            visibility: hidden;
+        }
+        .text-normal{
+            font-weight: normal;
+        }
+        .lead{
+            font-size: 18px;
+        }
+        .small{
+            font-size: 12px;
+        }
+        hr{
+            border-top: none;
+            border-bottom: 1px solid #ddd;
+            margin-bottom:15px;
+        }
+        .lookupIcon,.lookupIconOn{
+            vertical-align: middle;
+        }
+        .input{
+            padding-bottom:1px;
+        }
+        .dateFormat{
+            display: none;
+        }
+
+        .pbTitle{
+            padding-left:0 !important;
+        }
+        table.mainTitle{
+            width: 100%;
+            font-size: 15px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        table.mainTitle td{
+            vertical-align: middle;
+        }
+        table.mainTitle td > label{
+            vertical-align: bottom;
+        }
+        table.mainTitle input[type=text]{
+            font-size: 15px;
+            font-weight: bold;
+        }
+        table.mainTitle input[type=submit]{
+            font-size: 12px;
+        }
+        table.mainTitle label{
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        table.dataTable thead th.sorting div:after,
+        table.dataTable thead th.sorting_asc div:after,
+        table.dataTable thead th.sorting_desc div:after {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: block;
+            font-family: FontAwesome;
+        }
+        table.dataTable thead th.sorting div:after {
+            content: "\f0dc";
+            color: rgba(0,0,0,0.3);
+        }
+        table.dataTable thead th.sorting_asc div:after {
+            content: "\f0de";
+        }
+        table.dataTable thead th.sorting_desc div:after {
+            content: "\f0dd";
+        }
+        table.dataTable th{
+            font-weight: normal !important;
+            position: relative;
+            cursor: pointer;
+        }
+        table.dataTable th.no-sort{
+            cursor: default;
+        }
+        body .pbBody table.list tr.dataRow:nth-of-type(odd) {
+            background-color: #f9f9f9;
+        }
+        body .pbBody table.list tr.dataRow td{
+            border-width: 0 1px 1px 0;
+        }
+        body .pbBody table.list tr.dataRow td:last-child{
+            border-right-width: 0;
+        }
+        table.dataTable tr:last-child td{
+            border-bottom-width: 0 !important;
+        }
+        .dataTables_paginate{
+            margin: 10px 0;
+            text-align: right;
+        }
+        .dataTables_paginate .paginate_button,
+        .dataTables_paginate .paginate_button.disabled, .dataTables_paginate .paginate_button.disabled:hover, .dataTables_paginate .paginate_button.disabled:active{
+            color: #0099FF;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            line-height: 1;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .dataTables_paginate .paginate_button.disabled, .dataTables_paginate .paginate_button.disabled:hover, .dataTables_paginate .paginate_button.disabled:active{
+            color: #ddd;
+            outline: none;
+            cursor: default;
+        }
+        .dataTables_paginate .paginate_button.current, .dataTables_paginate .paginate_button.current:hover,
+        .dataTables_paginate .paginate_button:hover{
+            color: #fff;
+            background: #0099FF;
+            border-color: #0099FF;
+            text-decoration: none;
+        }
+        table.dataTable tbody{
+            display: none;
+        }
+        .pbBody th{
+            vertical-align: top;
+        }
+        .pbBody th,.pbBody td{
+            text-align: center;
+        }
+
+        .filter-search{
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .filter-search input{
+            min-width: 300px;
+            padding-left: 20px;
+        }
+        .filter-search i{
+            position: absolute;
+            left: 5px;
+            top: 4px;
+            opacity: 0.5;
+        }
+        .column-filter{
+            margin-top:5px;
+        }
+        .pbBody{
+            position: relative;
+        }
+        .table-status{
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,.8);
+            text-align: center;
+        }
+        .table-status img{
+            position: absolute;
+            top: 50%;
+        }
+        .bPageBlock .requiredInput .requiredBlock{
+            display: none;
+        }
+    </style>
+
+    <script>
+        jQuery(document).ready(function ($) {
+            initTables();
+        });
+
+        function initTables() {
+            $('.dataTable').each(function (i, v) {
+                var table = $(v).DataTable({
+                    "sDom": 'tp',
+                    "pageLength": 8,
+                    "paging" : $(v).find('tbody tr').length>8,
+                    "columnDefs": [
+                        {
+                            "targets": 'no-sort',
+                            "orderable": false
+                        },
+                        {
+                            "targets": 'no-view',
+                            "visible": false
+                        }
+                    ],
+                    "order": [],
+                    "language": {
+                        "paginate": {
+                            "previous": '<i class="fa fa-angle-left"></i>',
+                            "next": '<i class="fa fa-angle-right"></i>'
+                        }
+                    }
+                });
+
+                table.columns().every( function () {
+                    var self = this;
+
+                    if($('.fa-right',self.header()).length>0){
+                        var filter = $('.column-filter',self.header());
+                        var filterData = filter.attr('data-filter');
+                        if(filterData){
+                            filter.append(filterData);
+                        }
+
+                        $(self.header()).on('click keypress', '.fa-right,input,select', function (e) {
+                            e.stopPropagation();
+                            var filters = $('.column-filter',v);
+                            if($(this).hasClass('fa-right')){
+                                if(filters.hasClass('hidden')){
+                                    filters.removeClass('hidden');
+                                }else{
+                                    filters.find('input,select').val('').change();
+                                    filters.addClass('hidden');
+                                }
+                            }
+                        });
+
+                        $('input', this.header()).on('keyup change search', function () {
+                            if (self.search() !== this.value) {
+                                self.search(this.value).draw();
+                            }
+                        });
+
+                        $('select', this.header()).on('change', function () {
+                            if (self.search() !== this.value) {
+                                self.search(this.value).draw();
+                            }
+                        });
+                    }
+                } );
+
+                $('.filter-search input').on('keyup change search', function () {
+                    if (table.search() !== this.value) {
+                        table.search(this.value).draw();
+                    }
+                });
+            });
+            $('.dataTable tbody td.unknownable').each(function (i,v) {
+                if($.trim($(v).text())=='') $(v).addClass('unknown')
+            });
+            $('.dataTable tbody').show();
+        }
+    </script>
+
+    <apex:insert name="contents"/>
+
+</apex:page>

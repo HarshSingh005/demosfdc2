@@ -1,0 +1,134 @@
+<apex:page id="pg" standardController="Opportunity" extensions="OpportunityRelatedContents">
+    <c:WaitingComponent />
+<apex:form id="frm">
+<apex:actionFunction action="{!renderVF}" name="renderVF" rerender="pickListId"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script>
+    $(document).ready(function(){
+    });
+    
+    function rerenderPicklist(){
+        /*var picklistVal = $('.headerClassComp').val();
+            if(picklistVal != 'Kept by LP/Community'){
+                $('#headerId').hide();
+            } else {
+                $('#headerId').show();
+            }*/
+    }
+    
+        function putValue(selvalue, contentId){
+            //alert(selvalue);
+            //alert('Con Id-->'+ contentId);
+            $('.'+contentId).html(selvalue);
+        }
+        
+        function reloadParent(){
+            //alert('reloadAlert');
+            //alert('{!redirectUrl}');
+            
+            window.top.location.href = '{!redirectUrl}';
+        }
+    </script>
+    <apex:pageBlock id="pb1">
+    <apex:pageMessages />
+    <apex:pageBlockButtons location="top" id="pgbtn">
+          <!--<apex:commandButton value="Add Content" onclick="openContentPage('New','');return false;" />  -->
+           <apex:commandButton action="{!saveContent}" value="Save" onClick="lockScreen(true, 'Saving...');" onComplete="reloadParent(); lockScreen(false);"/>
+    </apex:pageBlockButtons>
+    <apex:outputPanel rendered="{!allocationsList.size == 0}">No Contents Available</apex:outputPanel>
+        <apex:pageBlockTable id="pbt1" value="{!allocationsList}" var="content" rendered="{!allocationsList.size > 0}">
+       <!-- <apex:column headerValue="Action">
+        <a href="/apex/{!content.Id}" class="actionLink">{!content.Id}</a>
+             <!--<apex:commandlink onclick="openContentPage('Edit','{!content.contentDocumentId}',{!content.Ordering_Document__c},'{!content.contentDocument.Title}');return false;" reRender="pbt1" value="New Version"></apex:commandlink>&nbsp;|&nbsp;
+             <a href="/sfc/#version?selectedDocumentId={!content.contentDocumentId}" class="actionLink" onclick="redirectToRecord('{!content.contentDocumentId}' , 'false');return false;">Edit</a>&nbsp;|&nbsp;
+             <apex:commandlink onclick="confirmDeleteAction('{!content.contentDocumentId}')" reRender="pbt1" value="Del"></apex:commandlink> 
+             </apex:column>  -->
+            <apex:column headerValue="DFC Status">
+                <apex:outputText styleClass="prefix_{!content.Id}" value="{!status}"></apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Value Date">
+            <apex:outputText value="{0,date, MM/dd/yyyy}">
+                <apex:param value="{!content.Release_Date__c}" />
+            </apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Local Currency Amount">
+                {!content.Local_Currency_Amount__c}
+            </apex:column>
+             <apex:column headerValue="Received By NO Date">
+             <apex:outputText value="{0,date,MM/dd/yyyy}">
+                <apex:param value="{!content.Received_by_NO_Date__c}" />
+            </apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Exchange Rate" value="{!content.Obligation__r.Exchange_Rate__c}" />
+            <!-- <apex:column headerValue="Ordering Document" value="{!content.Ordering_Document__c}"/>
+            <apex:column headerValue="Created Date" value="{!content.CreatedDate}"/>
+            <apex:column headerValue="Last Modified Date" value="{!content.LastModifiedDate}"/>
+            <apex:column headerValue="Author">
+            <a href="/{!content.ownerId}" class="actionLink" onclick="redirectToRecord('{!content.ownerId}' , 'false');return false;">{!content.owner.name}</a>
+            </apex:column> -->
+            
+            <!--
+            <apex:column headerValue="DFC Status Override" >
+              <apex:inputField value="{!content.Transaction__r.DFC_Status__c}"   rendered="{!pendingStatusMap[content.Id] == 'Received by NO'}" onchange="putValue(this.value, 'prefix_{!content.Id}')"/>
+              <apex:outputField value="{!content.Transaction__r.DFC_Status__c}" rendered="{!pendingStatusMap[content.Id] != 'Received by NO'}"/>
+            </apex:column>
+            -->
+            
+            <apex:column styleClass="headerClassComp" headerValue="DFC Status Override" rendered="{!(!(status == 'Pending' || status == 'In Process' || status == 'Sent to NO') && userHasAccess)}">
+                <apex:selectList size="1" value="{!selectedDFCOverrideStatus}" id="pickListId" styleClass="pickListClass" onchange="putValue(this.value, 'prefix_{!content.Id}')">
+                    <apex:selectOptions value="{!dfcOverRidePicklist}">
+                    </apex:selectOptions>
+                </apex:selectList>
+            </apex:column>
+           
+        </apex:pageBlockTable>
+         <apex:pageBlockTable id="pbt2" value="{!statusList}" var="content" rendered="{!allocationsList.size == 0}">
+       <!-- <apex:column headerValue="Action">
+        <a href="/apex/{!content.Id}" class="actionLink">{!content.Id}</a>
+             <!--<apex:commandlink onclick="openContentPage('Edit','{!content.contentDocumentId}',{!content.Ordering_Document__c},'{!content.contentDocument.Title}');return false;" reRender="pbt1" value="New Version"></apex:commandlink>&nbsp;|&nbsp;
+             <a href="/sfc/#version?selectedDocumentId={!content.contentDocumentId}" class="actionLink" onclick="redirectToRecord('{!content.contentDocumentId}' , 'false');return false;">Edit</a>&nbsp;|&nbsp;
+             <apex:commandlink onclick="confirmDeleteAction('{!content.contentDocumentId}')" reRender="pbt1" value="Del"></apex:commandlink> 
+             </apex:column>  -->
+            <apex:column headerValue="DFC Status">
+                <apex:outputText value="{!status}"></apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Value Date">
+            <apex:outputText value="{!setStatus}">
+                
+            </apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Local Currency Amount">
+                
+            </apex:column>
+             <apex:column headerValue="Received By NO Date">
+             <apex:outputText value="{!setStatus}">
+            </apex:outputText>
+            </apex:column>
+            <apex:column headerValue="Exchange Rate">
+            <apex:outputText value="{!setStatus}">
+            </apex:outputText>
+            </apex:column>
+            <!-- <apex:column headerValue="Ordering Document" value="{!content.Ordering_Document__c}"/>
+            <apex:column headerValue="Created Date" value="{!content.CreatedDate}"/>
+            <apex:column headerValue="Last Modified Date" value="{!content.LastModifiedDate}"/>
+            <apex:column headerValue="Author">
+            <a href="/{!content.ownerId}" class="actionLink" onclick="redirectToRecord('{!content.ownerId}' , 'false');return false;">{!content.owner.name}</a>
+            </apex:column> -->
+            
+            <!--
+            <apex:column headerValue="DFC Status Override" >
+              <apex:inputField value="{!content.Transaction__r.DFC_Status__c}"   rendered="{!pendingStatusMap[content.Id] == 'Received by NO'}" onchange="putValue(this.value, 'prefix_{!content.Id}')"/>
+              <apex:outputField value="{!content.Transaction__r.DFC_Status__c}" rendered="{!pendingStatusMap[content.Id] != 'Received by NO'}"/>
+            </apex:column>
+            -->
+            
+            <apex:column headerValue="Exchange Rate">
+            <apex:outputText value="{!setStatus}">
+            </apex:outputText>
+            </apex:column>
+           
+        </apex:pageBlockTable>
+
+    </apex:pageBlock>
+  </apex:form>
+</apex:page>

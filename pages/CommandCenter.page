@@ -1,0 +1,38 @@
+<apex:page controller="CommandCenterCtr">
+	<apex:includeScript value="/support/console/25.0/integration.js"/>
+	<style>
+	#vfcomponent{
+	    font-size: 1.2em;
+	    margin-top: 1em;
+	    margin-bottom: 1em;
+	}
+
+	#vfcomponent h1 {
+	    color: #2E94B9;
+	}
+	</style>
+	<script>
+		function acceptNextCase()
+		{
+			CommandCenterCtr.acceptNextCase( function (result, event){
+				if(event.status){
+					if(result.isSuccess){
+					 	//open the primary tab
+						var caseId = result.caseId;
+						var redirectURL = '/'+caseId;
+						var caseNumber = result.caseNum;
+		                sforce.console.openPrimaryTab(null, redirectURL, true, caseNumber);  
+					}else{
+						alert(result.errorMsg);
+					}
+                }
+			});
+		}
+	</script>
+	<div id="vfcomponent">
+		<h1 style="margin-top: 1em;">Agent Command Center</h1>
+		<div style="margin-top: 1em;">
+		    <button onclick="acceptNextCase(); return false;">Accept Next Case</button>
+	    </div>
+    </div>
+</apex:page>

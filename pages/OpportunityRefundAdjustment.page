@@ -1,0 +1,120 @@
+<apex:page standardController="Opportunity" extensions="OpportunityRefundAdjustment" showheader="false" sidebar="false">
+
+    <apex:form >
+        <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script-->
+
+        <apex:pageMessages id="pageMessages"/>
+        
+        <!--apex:actionFunction name="Submit Refund / Adjustment" action="{!submitRefundAdjustment}" rerender="pageMessages"/-->
+        <style type="text/css">
+          .pbTitle { white-space: nowrap; }
+        </style>
+        <apex:pageBlock id="OuterPageBlock" title="Refunds and Adjustments" mode="detail">
+ 
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!submitRefundAdjustment}" value="Submit Refund / Adjustment" disabled="{!disableAdjustment}"/>
+            </apex:pageBlockButtons>
+
+            <apex:pageBlock id="innerPageBlock" title="{!originalTransaction.Name}">
+
+                <apex:pageBlockSection columns="2" title="General" collapsible="false">
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Product Type" for="label1a"/>                    
+                        <apex:outputText id="label1a" value="{!originalTransaction.Parent_Product_Type__c}"  />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Total Backed Out for this transaction" for="label1b"/>                    
+                        <apex:outputText id="label1b" value="{!totalBackOuts}"/>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="DFC Status" for="label1d"/>                    
+                        <apex:outputText id="label1d" value="{!calculatedDFCStatus}"/>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Payment Type" for="label1e"/>                    
+                        <apex:outputText id="label1e" value="{!originalTransaction.rC_Giving__Payment_Method_Selected__r.rC_Giving__Payment_Type__c}"/>
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Adjusting From GAU" for="label1e"/>                    
+                        <apex:outputText id="label1e" value="{!originalTransaction.rC_Giving__GAU__r.Name}"/>
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+                <apex:pageBlockSection columns="2" title="" collapsible="false">
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Adjustment Type" for="label1f"/>                    
+                         <apex:selectList id="label1f" value="{!adjustmentType}" multiselect="false" size="1" >
+                          <apex:selectOptions value="{!adjustmentTypes}"/>
+                          <apex:actionSupport event="onchange" action="{!adjustmentTypeChange}" />
+                        </apex:selectList>
+                        </apex:pageBlockSectionItem>
+ 
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Amount Remaining to be Adjusted/Refunded" for="label2"/>                    
+                        <apex:inputField id="label2" value="{!uiOpportunityFields.Amount}" required="false" />
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Adjustment Reason" for="label5"/>                    
+                        <apex:selectList id="label5" value="{!uiOpportunityFields.Adjustment_Reason__c}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!listAdjustReasons}"/>
+                        </apex:selectList>                        
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem rendered="{!showReturnCodes}" >
+                        <apex:outputLabel value="Return Code" for="label4"/>                    
+                        <apex:selectList id="label4" value="{!uiOpportunityFields.Return_Code__c}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!listReturnCodes}"/>
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Adjustment Comments" for="label9"/>                    
+                        <apex:inputField id="label9" value="{!uiOpportunityFields.Adjustment_Comments__c}" required="false" />
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Suppress from Statement" for="label9a"/>                    
+                        <apex:inputCheckBox id="label9a" value="{!suppressFromStatement}" required="false" />
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+                <apex:pageBlockSection columns="2" title="Negative 'Adjust From' Transaction" collapsible="false">
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="GAU Account" for="label6"/>
+                         <apex:selectList id="label6" value="{!negTransGAU}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!negTransGAUoptions}"/>
+                        <!--apex:actionSupport event="onchange" action="{!negTransGAUchange}" /-->
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+                <apex:pageBlockSection columns="2" title="Positive 'Adjust To' Transaction" collapsible="false">
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="GAU Account" for="label7"/>
+                         <apex:selectList id="label7" value="{!posTransGAU}" multiselect="false" size="1" >
+                        <apex:selectOptions value="{!posTransGAUoptions}"/>
+                        <!--apex:actionSupport event="onchange" action="{!posTransGAUchange}" /-->                       
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Destination Opportunity" for="label8"/>                    
+                        <apex:inputField id="label8" value="{!uiOpportunityFields.rC_Giving__Parent__c}" required="false" />
+                    </apex:pageBlockSectionItem>
+
+                </apex:pageBlockSection>
+
+
+            </apex:pageBlock>
+        </apex:pageBlock>
+    </apex:form>
+
+</apex:page>

@@ -1,0 +1,5 @@
+<apex:page standardController="Approval_Process_Setting__c">
+  <flow:interview name="Approval_Flow_Helper" buttonLocation="bottom">
+    <apex:param name="vAPSID" value="{!Approval_Process_Setting__c.Id}"/>
+  </flow:interview>
+</apex:page>
