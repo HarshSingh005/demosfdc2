@@ -1,6 +1,6 @@
 public class Account_ManageAddressesController {
     
-    public List<rC_Bios__Account_Address__c> accountAddressList {get;set;}// List of all the available address
+    public List<rC_Bios__Account_Address__c> accountAddressList {get;set;}// ////List of all the available address
     public rC_Bios__Account_Address__c accountAddressInsert {get;set;}// New account address to be inserted
     public List<rC_Bios__Account_Address__c> relatedAddressList {get; set;}
     public Map <String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
