@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ActionLinkGroupTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
-    <category>Primary</category>
-    <executionsAllowed>Once</executionsAllowed>
-    <hoursUntilExpiration>1</hoursUntilExpiration>
-    <isPublished>false</isPublished>
-    <name>test action</name>
-</ActionLinkGroupTemplate>
