@@ -1,0 +1,98 @@
+<aura:component controller="ParamController" implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <!--<aura:attribute name="myText" type="String" default="some string"/>-->
+    <aura:attribute name="acList" type="Account[]" />
+    <aura:attribute name="msging" type="String" default=""/>
+    <aura:attribute name="mAcc" type="Account"/>
+    <div class="currentID">
+        Enter Account Name  <ui:inputText aura:id="client" />
+        <ui:button press="{!c.echo}" label="Submit" class="slds-button slds-button_neutral"/><br/>
+        <ui:outputText value="{!v.myText}" />
+        <!--Creating the table for the account list in one pass -->
+        <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+            <thead>
+                <tr class="slds-text-title--caps">
+                    <th scope="col" width="10%">
+                        <div class="slds-truncate" title="Delete">Delete</div>
+                    </th>
+                    <th scope="col" width="10%">
+                        <div class="slds-truncate" title="Edit">Edit</div>
+                    </th>
+                    <th scope="col" width="40%">
+                        <div class="slds-truncate" title="Account Id">Account ID</div>
+                    </th>
+                    <th scope="col" width="40%">
+                        <div class="slds-truncate" title="Account Name">Name</div>
+                    </th>              
+                </tr> 
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.acList}" var="ac">
+                    <tr>
+                        <td scope="row" data-label="Delete" width="10%">
+                            <lightning:button onclick="{!c.deleteAccount}" variant="brand" value="{!ac.Id}" label="Delete" class="slds-button slds-button_neutral"/>
+                        </td>
+                        <td scope="row" data-label="Edit" width="10%">
+                            <lightning:button onclick="{!c.editAccount}" value="{!ac.Id}" label="Edit" class="slds-button slds-button_neutral"/>
+                        </td>    
+                        <th scope="row" data-label="Account ID" width="40%">
+                            <div class="slds-truncate" title="{!ac.Id}">{!ac.Id }</div>
+                        </th>
+                        <td data-label="Account Name" width="40%">
+                            <div class="slds-truncate" title="{!ac.Name }">{!ac.Name }</div>
+                        </td>               
+                    </tr>
+                </aura:iteration>
+            </tbody>    
+        </table>   
+    </div>
+         <!--Show the modal popup to show the edit screen of the account object -->
+    <div role="dialog" tabindex="-1" aura:id="myModal" aria-labelledby="header43" class="slds-modal ">
+        <div class="slds-modal__container">
+            <div class="slds-modal__header">
+                <h2 id="header43" class="slds-text-heading--medium">ACCOUNT EDIT</h2>
+            </div>
+            <div class="slds-modal__content slds-p-around--medium">
+                <table class="slds-table slds-table--bordered slds-table--cell-buffer">
+                  <thead>
+                        <tr class="slds-text-title--caps">
+                            <th scope="col" colspan="2">
+                                Edit Account Page
+                            </th> </tr> </thead>
+                    <tbody>
+                        <tr><td>Account Name</td>          
+                            <td><ui:inputText value="{!v.mAcc.Name}" required="true" /></td>
+                            <td>Account Type</td> 
+                            <td><ui:inputText value="{!v.mAcc.Type}" required="true"/></td> </tr>
+                        <tr><td>Active</td>
+                            <td><ui:inputText value="{!v.mAcc.Active__c}" required="true"/></td>
+                            <td>Website</td>
+                            <td><ui:inputText value="{!v.mAcc.Website}" required="true"/></td>
+                        </tr>
+                        <tr><td>DUNS Number</td>
+                            <td><ui:inputText label="" value="{!v.mAcc.DunsNumber}" required="true"/></td> 
+                            <td></td>	
+                            <td></td>	
+                        </tr>	
+                    </tbody>
+                </table>        
+            </div>
+            <div class="slds-modal__footer">
+                <lightning:button label="Cancel" onclick="{!c.closeModal}"/>
+                <lightning:button variant="brand" label="Save" onclick="{!c.saveAccountRecord}" />
+            </div>
+        </div>
+    </div>
+    <div  class="slds-backdrop " aura:id="myModal-Back"></div>
+    <!--Show the modal screen on successful saving of the records-->
+    <div role="dialog" tabindex="-1" class="slds-backdrop " aura:id="saveModal" aria-labelledby="header43" >
+           <div class="slds-modal__container">
+            <div class="slds-modal__header">
+                <h2 id="header43" class="slds-text-heading--medium" >{!v.msging}!!!</h2>
+            </div>
+            <div class="slds-modal__footer">
+                <lightning:button label="Close" onclick="{!c.closeSuccess}"/>
+            </div>
+   </div>
+    </div>
+    <div class="slds-backdrop " aura:id="saveModal-Back"></div>
+</aura:component>

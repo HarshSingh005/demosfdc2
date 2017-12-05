@@ -1,0 +1,128 @@
+<apex:page standardController="Showing__c" extensions="ShowingWizardController" >
+    <!--Code to implement form for the existing showing object -->
+    <style type="text/css">
+        .required {color: red; font-weight: bold; font-size: large;}
+    </style>
+    <script type="text/javascript">  
+    var listOfObjects = new Array();
+    var listftrID=new Array();
+    function selectBox(ftrgen,myval,ftrID){
+        if(myval.checked==true){
+            listOfObjects.push(ftrgen);
+            listftrID.push(ftrID);
+        }else{
+            var index = listOfObjects.indexOf(ftrgen);
+            var ftrIndex=listftrID.indexOf(ftrID)
+            listftrID.splice(index,1);
+            listOfObjects.splice(ftrIndex,1);                    
+        }
+        var listofgen=String(listOfObjects);
+        genrev(listofgen);
+    }
+    function pgnton(){
+        for(var i=0;i<listftrID.length;i++){
+            var clsnm=listftrID[i];
+            var list = document.getElementsByClassName(clsnm);
+            for (var item of list) {
+                item.checked=true;
+            }
+        }  
+        return false;
+    }
+    function updtlst(){
+        listOfObjects = new Array();
+        listftrID=new Array();
+    }
+    </script>  
+    <apex:form >
+        <apex:messages style="Color:Red;list-style-type:none;"/>
+        <apex:actionFunction name="genrev" action="{!sendGenre}" reRender="pieChart,vchrt">
+            <apex:param assignTo="{!gernrelst}" name="lst" value=""/> 
+        </apex:actionFunction>    
+        <div style="Float:Left">
+            <img src="/img/icon/fan32.png"/>
+        </div>    
+        <div><text style="font-size:10px;font-weight:bold;float:top">Showing Edit</text><br/>
+            <text style="font-size:13px;font-weight:bold;"> {!showng.name}</text>
+        </div>
+        <apex:pageBlock >
+            <div style="padding:2px;float:center;text-align: center" >
+                <text style="float:left;font-size:13px;font-weight:bold;">Showing Information</text>
+                <apex:commandButton value="Save" action="{!saveShowing}"/>
+                <apex:commandButton value="Cancel" action="{!cancelShowing}"/>
+            </div>
+            <div style="background-color:#F3DBD8 !important;font-size:13px;font-weight:bold;padding:2px;" id="thePanel">
+                <text style="float:left;background-color:#F3DBD8;">Showing details</text>
+                <text stle="float:center;background-color:#F3DBD8;">&nbsp;</text>
+                <text style="float:right;background-color:#F3DBD8;"><text style="color:red;font-weight:bold;">|</text>= Required Information </text>
+            </div>
+            <apex:pageBlockSection >
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Date"/>
+                    <apex:outputPanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>                        
+                        <apex:inputField value="{!showng.Date__c}" />
+                    </apex:outputPanel>                        
+                </apex:pageBlockSectionItem>
+                <apex:inputField label="Features" value="{!showng.Feature__c}"></apex:inputField> 
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Start time"/>
+                    <apex:outputPanel layout="block" styleClass="requiredInput">
+                        <apex:outputpanel layout="block" styleClass="requiredBlock"></apex:outputpanel>                        
+                        <apex:inputField value="{!showng.Start_Time__c}" />
+                    </apex:outputPanel>                        
+                </apex:pageBlockSectionItem>
+                <apex:outputField label="Genre" value="{!showng.Primary_Genre__c}"></apex:outputField> 
+                <apex:inputField label="Screen Number" value="{!showng.Screen_Number__c}"></apex:inputField> 
+                <apex:outputField label="Release Date" value="{!featur.Release_Date__c}" ></apex:outputField> 
+                <apex:inputField label="Ticket Sold" value="{!showng.Tickets_Sold__c}"></apex:inputField> 
+            </apex:pageBlockSection>
+            <div style="background-color:#F3DBD8 !important;font-size:13px;font-weight:bold;padding:2px;" id="thePanel">
+                <text >Chart</text>
+            </div>
+            <br/>
+            <apex:pageBlockSection id="vchrt" >
+                <apex:pageBlockSectionItem rendered="{!IF(viewChart==true,False,True)}" >
+                    <apex:outputText rendered="{!IF(viewChart==true,False,True)}" value="No Trailers have been scheduled on this showing."  style="background-color:#FFFED2;padding:5px;font-size:11px;border: 1px solid #5297D7;"></apex:outputText>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:chart height="450" width="450" data="{!pieData}"    id="pieChart">
+                <apex:pieSeries dataField="caseCount" labelField="caseType" donut="50" />
+                <apex:legend position="right"/>
+            </apex:chart>
+            <br/>
+            <div style="background-color:#F3DBD8 !important;font-size:13px;font-weight:bold;padding:2px;" id="thePanel">
+                <text >Trailers</text>
+            </div>
+            <apex:selectList size="1" value="{!selectedGenre}" label="counter" id="question" >
+                <apex:selectOptions value="{!options}"/>
+                <apex:actionSupport event="onchange" action="{!showGenre}" reRender="featureTbl,pbsect,pieChart,vchrt" oncomplete="updtlst()"/>
+            </apex:selectList>
+            <apex:pageBlockTable value="{!lstFeature}" var="temp" Id="featureTbl" >
+                <apex:column headerValue=""  style="width:5px;" >
+                    <apex:inputCheckbox value="{!temp.slct}" styleClass="{!temp.feature.ID}" onclick="selectBox('{!temp.feature.Genre__c}',this,'{!temp.feature.ID}')" >
+                    </apex:inputCheckbox>   
+                </apex:column>    
+                <apex:column headerValue="Feature Name" >
+                    <apex:outputLink value="/{!temp.feature.ID}" target="_blank"><apex:outputField value="{!temp.feature.Name}"/>
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column headerValue="Genre">
+                    <apex:outputField value="{!temp.feature.Genre__c}"/>
+                </apex:column>
+                <apex:column headerValue="Release Date">
+                    <apex:outputField value="{!temp.feature.Release_Date__c}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+            <apex:pageBlock id="pbsect">
+                <div style="padding:2px;float:center;text-align: center">{!dbg}
+                    <apex:commandButton value="<|First" rerender="featureTbl,pbsect" action="{!FirstPage}" disabled="{!prev}" oncomplete="pgnton()"/>
+                    <apex:commandButton value="Previous" rerender="featureTbl,pbsect" action="{!previous}" disabled="{!prev}" oncomplete="pgnton()"/>
+                    Page {!currPage} of {!maxPage}
+                    <apex:commandButton value="Next" rerender="featureTbl,pbsect" action="{!next}" disabled="{!nxt}" oncomplete="pgnton()"/>
+                    <apex:commandButton value="Last|>" rerender="featureTbl,pbsect" action="{!LastPage}" disabled="{!nxt}" oncomplete="pgnton()"/>                
+                </div>
+            </apex:pageBlock>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Translations xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customApplications>
+        <label><!-- Dreamhouse Classic --></label>
+        <name>Dreamhouse_Classic</name>
+    </customApplications>
+    <customApplications>
+        <label><!-- Dreamhouse Classic Lightning --></label>
+        <name>Dreamhouse_Classic_Lightning</name>
+    </customApplications>
+    <customApplications>
+        <label><!-- Dreamhouse Lightning --></label>
+        <name>Dreamhouse_Lightning</name>
+    </customApplications>
+    <customApplications>
+        <label><!-- Lightning Knowledge --></label>
+        <name>Lightning_Knowledge</name>
+    </customApplications>
+    <customApplications>
+        <label><!-- Suggestion Box --></label>
+        <name>Suggestion_Box</name>
+    </customApplications>
+    <customApplications>
+        <label><!-- testdemoapp --></label>
+        <name>testdemoapp</name>
+    </customApplications>
+    <customLabels>
+        <label><!-- demo --></label>
+        <name>demo</name>
+    </customLabels>
+    <customPageWebLinks>
+        <label><!-- Destination Success Registration --></label>
+        <name>Destination_Success_Registration</name>
+    </customPageWebLinks>
+    <customTabs>
+        <label><!-- Key Sales Data --></label>
+        <name>Communication</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- Data Import --></label>
+        <name>Data_Import</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- Leads --></label>
+        <name>Leads</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- MyData --></label>
+        <name>MyData</name>
+    </customTabs>
+    <customTabs>
+        <label><!-- Web Tabs --></label>
+        <name>Web_Tabs</name>
+    </customTabs>
+    <quickActions>
+        <label><!-- LogACall --></label>
+        <name>LogACall</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewAccount --></label>
+        <name>NewAccount</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewCase --></label>
+        <name>NewCase</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewContact --></label>
+        <name>NewContact</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewEvent --></label>
+        <name>NewEvent</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewGroup --></label>
+        <name>NewGroup</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewLead --></label>
+        <name>NewLead</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewNote --></label>
+        <name>NewNote</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewOpportunity --></label>
+        <name>NewOpportunity</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- NewTask --></label>
+        <name>NewTask</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- New Suggestion --></label>
+        <name>New_Suggestion</name>
+    </quickActions>
+    <quickActions>
+        <label><!-- SendEmail --></label>
+        <name>SendEmail</name>
+    </quickActions>
+    <reportTypes>
+        <description><!-- Suggestion Report --></description>
+        <label><!-- Suggestion Report --></label>
+        <name>Suggestion_Report</name>
+        <sections>
+            <label><!-- Suggestions --></label>
+            <name>Suggestions</name>
+        </sections>
+    </reportTypes>
+    <reportTypes>
+        <description><!-- voucher --></description>
+        <label><!-- voucher --></label>
+        <name>voucher</name>
+        <sections>
+            <label><!-- vouchers --></label>
+            <name>vouchers</name>
+        </sections>
+    </reportTypes>
+</Translations>

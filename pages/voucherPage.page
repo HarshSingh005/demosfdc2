@@ -1,0 +1,10 @@
+<apex:page showHeader="false" sidebar="false">
+    <!-- lib for page relload-->
+     <apex:tabPanel switchType="client" selectedTab="name2" id="theTabPanel">
+        <apex:tab label="Voucher Registration" name="name1" id="tabOne">
+                    <apex:include pageName="RequestPage"/>
+        </apex:tab>
+           <apex:tab label="Result" name="Check Result" id="tabtwo" >
+               <apex:include pageName="Reporting"/>
+         </apex:tab></apex:tabPanel>
+</apex:page>

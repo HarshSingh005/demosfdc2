@@ -1,0 +1,27 @@
+<apex:page controller="Pagination_min">
+<apex:form >
+    <apex:pageBlock >
+        <apex:pageBlockSection columns="1" >
+            <apex:pageBlockTable value="{!accounts}" var="a" rows="5">
+               <apex:column value="{!a.Name}"/>
+                <apex:column value="{!a.Type}"/>
+                <apex:column value="{!a.BillingCity}"/>
+                <apex:column value="{!a.BillingState}"/>
+                <apex:column value="{!a.BillingCountry}"/>
+            </apex:pageBlockTable>
+            <apex:panelGrid columns="7"  >
+                <div style="align:center;">
+            <apex:commandButton value="|<First" action="{!setcon.first}" disabled="{!!setcon.hasPrevious}" title="First page"/>
+            <apex:commandButton value="Previous" action="{!setcon.previous}" disabled="{!!setcon.hasPrevious}" title="Previous page"/>
+                <apex:outputText >Page {!ROUND((setCon.pageNumber * size+1)/size,0)} of {!ROUND(noOfRecords/size,0)}</apex:outputText>
+            <apex:commandButton value="Next" action="{!setcon.next}" disabled="{!!setcon.hasNext}" title="Next page"/>
+            <apex:commandButton value="Last>|" action="{!setcon.last}" disabled="{!!setcon.hasNext}" title="Last page"/>
+                </div>
+               <!-- <apex:commandButton value="Refresh" action="{!refresh}" title="Refresh Page"/>-->
+             
+            </apex:panelGrid>
+        </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form>
+
+</apex:page>

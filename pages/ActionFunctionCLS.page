@@ -1,0 +1,32 @@
+<apex:page controller="ActionFunctionCLS" id="pg" >
+  <script>
+   function recSave(){
+    var accountType = document.getElementById('pg:fm:pb:pbs:actType').value;
+    alert('accountType -->'+accountType);
+    if(accountType != 'Prospect'){
+     alert('You Should Select Prospect to Save the Record');
+     return false;
+    }
+    else{
+     saveAccount(); //this is the function name which calls our action function from java Script.
+     return true;
+    }
+   }
+ 
+  </script> 
+
+ <apex:form id="fm">
+  <apex:actionfunction name="saveAccount" action="{!Saverec}" />
+   <apex:pageBlock id="pb">
+     <apex:pagemessages ></apex:pagemessages>
+     <apex:pageblockButtons >
+      <apex:commandButton value="Save" onclick="recSave();return false;"/>    
+     </apex:pageblockButtons>
+    
+     <apex:pageblockSection id="pbs">
+       <apex:inputField value="{!actobj.Name}" id="actName"/>
+       <apex:inputField value="{!actobj.type}" id="actType"/>
+     </apex:pageblockSection>
+   </apex:pageBlock>
+ </apex:form>
+</apex:page>

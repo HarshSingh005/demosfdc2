@@ -1,0 +1,102 @@
+<apex:page controller="VouvherController" action="{!setpickVal}" showHeader="false" sidebar="false" >
+    <!-- lib for page relload-->
+    <apex:includeScript value="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" />
+    <apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.8/js/jquery.tablesorter.min.js" />
+    <apex:stylesheet value="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.8/css/theme.blue.css" />
+    <style type="text/css">
+        .defaultHeader1 { text-decoration: none; }
+        .defaultHeader2 { text-decoration: none; }
+    </style>
+    <script>
+    var j$ = jQuery.noConflict();
+    j$(document).ready(function() 
+                       {
+                           j$("[id$='theTable']").tablesorter({theme: 'blue'}); 
+                           j$(".tablesorter-header-inner").hide();
+                           j$(".tablesorter-header").hide();
+                           j$text=j$(this).find('a.defaultHeader2');
+                           j$(this).find('a.defaultHeader1').after(j$text); 
+                       });
+    function sortTable(){
+        j$("[id$='theTable']").tablesorter({theme: 'blue'});  //Child table
+        j$(".tablesorter-header-inner").hide();
+        j$(".tablesorter-header").hide();           
+    }
+    var tt=false;
+    var tt1=false;
+    function sortCert(){
+        if(tt==false){            
+            j$("[id$='theTable']").trigger("sorton", [ [[0,1]] ]);     
+            j$(".tablesorter-header-inner").hide();
+            j$(".tablesorter-header").hide();          
+            tt=true;
+            console.log(tt);
+        }else{
+            j$("[id$='theTable']").trigger("sorton", [ [[0,0]] ]);
+            j$(".tablesorter-header-inner").hide();
+            j$(".tablesorter-header").hide();          
+            tt=false;
+            console.log(tt);
+        }
+    }   
+    function sortResrc(){
+        if(tt1==false){            
+            j$("[id$='theTable']").trigger("sorton", [ [[1,1]] ]);  
+            j$(".tablesorter-header-inner").hide();
+            j$(".tablesorter-header").hide(); 
+            tt1=true;
+            console.log(tt1);
+        }else{
+            j$("[id$='theTable']").trigger("sorton", [ [[1,0]] ]);            
+            j$(".tablesorter-header-inner").hide();
+            j$(".tablesorter-header").hide(); 
+            tt1=false;
+            console.log(tt1); 
+        }
+    }   
+    </script>
+    <apex:form style="align:center" >
+        <apex:pageblock >
+            <apex:pageBlockSection id="InfoId" columns="1" >
+                <apex:outputLabel value="Voucher Status" />
+                <apex:selectList size="1" value="{!SelectedValue}" id="drivedd" >
+                    <apex:selectOptions value="{!statusOptions}"/>
+                    <apex:actionSupport event="onchange" action="{!checkValue}" reRender="vhrchart" oncomplete="sortTable();" />
+                </apex:selectList>
+                <apex:outputLink onclick="sortCert();return false;" styleClass="defaultHeader1" >Certification&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</apex:outputLink>
+                <apex:outputLink onclick="sortResrc();return false;"  styleClass="defaultHeader2" >Resource</apex:outputLink>           
+            </apex:pageBlockSection>
+            <apex:pageBlockSection id="vhrchart">                   
+                <apex:datatable value="{!listSizeMap}" var="key" id="accsTable" styleclass="tablesorter" style="width:40%" > 
+                    <apex:column style="width:50%;background-color:#d5ddf3;" headerValue="" >
+                        <apex:outputText value="{!key} (record count : {!listSizeMap[key]})" style="font-weight: bold;"/>
+                        <apex:dataTable value="{!vmaps[key]}" var="ct" id="theTable" rowClasses="odd,even" styleClass="tablesorter" style="width:100%">
+                            <apex:column style="width:50%;background-color:#F5F7FF" headerValue="test" >
+                                <apex:outputText value="{!ct.exam}"/>
+                            </apex:column>
+                            <apex:column style="width:50%;background-color:#F5F7FF" headerValue="Name">
+                                <apex:outputText value="{!ct.resrc}"/>
+                            </apex:column>
+                        </apex:dataTable>
+                    </apex:column>
+                </apex:datatable> 
+                <!--       
+<apex:repeat value="" var="mlst">
+{!mlst}
+</apex:repeat>	 -->
+                <!-- {!barData}<br/><br/>{!finalReport}<br/><br/>
+{!PieData}-->
+                <!--   <apex:chart data="{!barData}" height="200" width="500">
+<apex:legend position="top"/>
+<apex:axis type="Numeric" position="left" fields="data"  title="Result" minimum="0" maximum="{!maxval}"/>
+<apex:axis type="Category" position="bottom" fields="name"    title="Drive Name"/>
+<apex:barSeries orientation="vertical" axis="left" xField="name" yField="data" />
+</apex:chart>
+<apex:chart height="200" width="300" data="{!PieData}">
+<apex:pieSeries dataField="wedge" labelField="name"/>
+<apex:legend position="right"/>
+</apex:chart>-->
+            </apex:pageBlockSection>
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

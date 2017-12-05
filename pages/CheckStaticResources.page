@@ -1,0 +1,13 @@
+<apex:page controller="CheckStaticResources" >
+<style>
+    infos{          
+    background:url({!URLFOR($Resource.SetupForImages,'images/back-black.svg')});
+    background-size: 10px 10px;
+    background-repeat: no-repeat;
+    }
+</style>    
+    <apex:form >
+    <div class="infos"> demos   </div>
+  
+    </apex:form>
+</apex:page>

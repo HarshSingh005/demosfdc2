@@ -1,0 +1,5 @@
+<aura:component implements="force:appHostable">
+	<div aria-label="" class="slds-rich-text-area__content slds-grow slds-wrap slds-scrollable_y slds-hyphenate">
+        <ui:outputRichText value="{!v.richtextFld}"></ui:outputRichText>
+</div>
+</aura:component>

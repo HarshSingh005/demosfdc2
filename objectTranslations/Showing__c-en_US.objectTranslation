@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Showing</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Showings</value>
+    </caseValues>
+    <fields>
+        <label><!-- Concatenated Name --></label>
+        <name>Concatenated_Name__c</name>
+    </fields>
+    <fields>
+        <label><!-- Date --></label>
+        <name>Date__c</name>
+    </fields>
+    <fields>
+        <label><!-- Feature --></label>
+        <name>Feature__c</name>
+        <relationshipLabel><!-- Showings --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Primary Genre --></label>
+        <name>Primary_Genre__c</name>
+    </fields>
+    <fields>
+        <label><!-- Screen Number --></label>
+        <name>Screen_Number__c</name>
+        <picklistValues>
+            <masterLabel>test</masterLabel>
+            <translation><!-- test --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Start Time --></label>
+        <name>Start_Time__c</name>
+        <picklistValues>
+            <masterLabel>Test</masterLabel>
+            <translation><!-- Test --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Tickets Sold --></label>
+        <name>Tickets_Sold__c</name>
+    </fields>
+    <layouts>
+        <layout>Showing Layout</layout>
+        <sections>
+            <label><!-- Custom Links --></label>
+            <section>Custom Links</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+    <validationRules>
+        <errorMessage><!-- Showing date should not be earlier feature’s release date. --></errorMessage>
+        <name>Showing_Date_Vaildation</name>
+    </validationRules>
+</CustomObjectTranslation>

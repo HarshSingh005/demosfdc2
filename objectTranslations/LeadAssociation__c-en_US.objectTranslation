@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>LeadAssociation</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>LeadAssociations</value>
+    </caseValues>
+    <fields>
+        <label><!-- Lead Name --></label>
+        <name>Lead_Name__c</name>
+        <relationshipLabel><!-- Prospect --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Property Name --></label>
+        <name>Property_Name__c</name>
+        <relationshipLabel><!-- Prospect --></relationshipLabel>
+    </fields>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

@@ -1,0 +1,28 @@
+<apex:page standardController="Account"  >
+ <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" />
+    <script type="text/javascript">
+        $(document).ready(function(){
+            console.log('hello');
+            var table = $("table tbody");
+            table.find('tr').each(function (i) {
+            var $tds = $(this).find('td');
+              accNm = $tds.eq(0).text();
+              if(accNm==='GenePoint'){
+                 $tds.css("background-color", "yellow");
+              }        
+            });
+        });
+    </script>
+    <apex:form >
+        <apex:pageBlock > 
+        <apex:pageBlockTable value="{!account}" var="temp" Id="featureTbl" >
+            <apex:column headerValue="Account Name" >
+                <apex:outputField value="{!temp.Name}"/>
+            </apex:column>
+            <apex:column headerValue="Account Id" >
+                <apex:outputField value="{!temp.ID}"/>
+            </apex:column>
+        </apex:pageBlockTable>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

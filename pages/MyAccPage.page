@@ -1,0 +1,27 @@
+<apex:page title="My Account Pages" controller="paginationController"  showHeader="false" sidebar="false" readOnly="true" cache="false">
+ <apex:sectionHeader title="My Accounts"/>
+ 
+<apex:pageBlock >   
+   <apex:pageBlockButtons location="top" >
+   <apex:outputPanel id="myButtons">
+   <apex:form >
+        <apex:commandButton action="{!Beginning}" title="Beginning" value="<<" disabled="{!disablePrevious}" reRender="myPanel,myButtons"/>
+        <apex:commandButton action="{!Previous}" title="Previous" value="<" disabled="{!disablePrevious}" reRender="myPanel,myButtons,myFrame"/>        
+        <apex:commandButton action="{!Next}" title="Next" value=">" disabled="{!disableNext}" reRender="myPanel,myButtons,myFrame"/>
+        <apex:commandButton action="{!End}" title="End" value=">>" disabled="{!disableNext}" reRender="myPanel,myButtons"/>        
+   </apex:form>
+   </apex:outputPanel>
+   </apex:pageBlockButtons>
+    
+   <apex:pageBlockSection title="Paginated List of Accounts (Total List Size: {!total_size})" collapsible="false">
+   <apex:outputPanel id="myPanel" >
+   <apex:pageMessages id="theMessages" />
+   <apex:repeat value="{!numbers}" var="n" >
+              <apex:iframe id="myFrame" src="https://na14.salesforce.com/{!n.id}" width="900"></apex:iframe>
+ 
+</apex:repeat>  
+</apex:outputPanel>
+   </apex:pageBlockSection>
+   
+</apex:pageBlock>
+</apex:page>

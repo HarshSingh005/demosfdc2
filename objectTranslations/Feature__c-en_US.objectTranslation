@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Feature</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Features</value>
+    </caseValues>
+    <fields>
+        <label><!-- Genre --></label>
+        <name>Genre__c</name>
+        <picklistValues>
+            <masterLabel>Action</masterLabel>
+            <translation><!-- Action --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Animation</masterLabel>
+            <translation><!-- Animation --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Comedy</masterLabel>
+            <translation><!-- Comedy --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Drama</masterLabel>
+            <translation><!-- Drama --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Epic</masterLabel>
+            <translation><!-- Epic --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Musical</masterLabel>
+            <translation><!-- Musical --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Release Date --></label>
+        <name>Release_Date__c</name>
+    </fields>
+    <fields>
+        <label><!-- Trailer Impression --></label>
+        <name>Trailer_Impression_Display__c</name>
+    </fields>
+    <fields>
+        <label><!-- Trailer Impression1 --></label>
+        <name>Trailer_Impression__c</name>
+    </fields>
+    <layouts>
+        <layout>Feature Layout</layout>
+        <sections>
+            <label><!-- Custom Links --></label>
+            <section>Custom Links</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+    <webLinks>
+        <label><!-- testbutton --></label>
+        <name>testbutton</name>
+    </webLinks>
+</CustomObjectTranslation>
